@@ -13,7 +13,7 @@ using log4net.Appender;
 namespace vc2opcua
 {
     [Export(typeof(IPlugin))]
-    public class VCManager : IPlugin
+    public class VcManager : IPlugin
     {
         // Accesses the application itself, initialize to null for avoiding compiling errors
         [Import]
@@ -29,7 +29,6 @@ namespace vc2opcua
             IMessageService ms = IoC.Get<IMessageService>();
             string message = "VC2OPCUA plugin loaded";
             ms.AppendMessage(message, MessageLevel.Warning);
-
         }
     }
 }
