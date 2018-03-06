@@ -32,19 +32,19 @@ namespace vc2opcua
 
             foreach (ISimComponent comp in _components)
             {
-                Debug.WriteLine(comp.Name);
+                Debug.WriteLine("Component: " + comp.Name);
+                Debug.WriteLine("  Properties: ");
                 foreach (IProperty property in comp.Properties)
                 {
-                    Debug.WriteLine("  " + property.Name);
+                    Debug.WriteLine("    " + property.Name);
                 }
             }
-
 
         }
 
         public void VcWriteWarningMsg(string message)
         {
-            _ms.AppendMessage(message, MessageLevel.Warning);
+            _ms.AppendMessage("[vc2opcua] " + message, MessageLevel.Warning);
         }
     }
 }

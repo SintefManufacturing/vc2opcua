@@ -15,6 +15,8 @@ namespace vc2opcua
     class Vc2OpcUaPanelViewModel : DockableScreen
     {
         VcManager _vcmanager = new VcManager();
+        private string _host = "0.0.0.0";
+        private string _port = "4840";
 
         public Vc2OpcUaPanelViewModel()
         {
@@ -26,15 +28,30 @@ namespace vc2opcua
         public void Start()
         {
             // Automatically related to element in *View.xaml having x:Name = this method's name
-            string message = "Start Button Clicked";
+
+            string message = String.Format("Starting OPCUA server: \n  Host: {0}\n  Port: {1}",
+                                           Host, Port);
+
             _vcmanager.VcWriteWarningMsg(message);
 
             _vcmanager.GetComponentProperties();
         }
         public void Stop()
         {
-             string message = "Stop Button Clicked";
-             _vcmanager.VcWriteWarningMsg(message);
+            string message = "Stop Button Clicked";
+            _vcmanager.VcWriteWarningMsg(message);
         }
+
+        public string Host
+        {
+            get { return _host; }
+            set { _host = value; }
+        }
+        public string Port
+        {
+            get { return _port; }
+            set { _port = value; }
+        }
+
     }
 }

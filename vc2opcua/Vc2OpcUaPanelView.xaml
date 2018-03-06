@@ -7,17 +7,23 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="20"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="20"/>
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="20"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="20"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
-        <TextBox x:Name="IP" Grid.Row="0">IP</TextBox>
-        <TextBox x:Name="Port" Grid.Row="1">Port</TextBox>
-        <Button x:Name="Start" Grid.Row="3">Start</Button>
-        <Button x:Name="Stop" Grid.Row="4">Stop</Button>
+        <TextBox x:Name="Host" Grid.Row="1" Grid.Column="1"></TextBox>
+        <TextBox x:Name="Port" Grid.Row="2" Grid.Column="1"></TextBox>
+        <Button x:Name="Start" Grid.Row="4" Grid.Column="1">Start</Button>
+        <Button x:Name="Stop" Grid.Row="5" Grid.Column="1">Stop</Button>
 
     </Grid>
 </UserControl>

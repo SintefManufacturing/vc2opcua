@@ -15,6 +15,8 @@ namespace vc2opcua
     [Export(typeof(IPlugin))]
     public class Vc2OpcUaPlugin : IPlugin
     {
+        VcManager _vcmanager = new VcManager();
+
         void IPlugin.Exit()
         {
 
@@ -22,9 +24,8 @@ namespace vc2opcua
 
         void IPlugin.Initialize()
         {
-            IMessageService ms = IoC.Get<IMessageService>();
-            string message = "VC2OPCUA plugin loaded";
-            ms.AppendMessage(message, MessageLevel.Warning);
+            string message = "Plugin loaded";
+            _vcmanager.VcWriteWarningMsg(message);
         }
     }
 }
