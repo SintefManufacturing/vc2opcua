@@ -39,7 +39,49 @@ namespace vc2opcua
                     Debug.WriteLine("    " + property.Name);
                 }
             }
+        }
 
+        public ISimComponent GetComponent(string name)
+        {
+            _application = IoC.Get<IApplication>();
+            _components = _application.World.Components;
+
+            foreach (ISimComponent component in _components)
+            {
+                if (component.Name == name)
+                {
+                    return component;
+                }
+            }
+
+            // If we go through all the components and we do not find any match
+            string message = String.Format("Component {0} not found", name);
+            VcWriteWarningMsg(message);
+
+            return null;
+        }
+
+        public IProperty GetProperty(ISimComponent component, string name)
+        {
+
+            foreach (IProperty property in component.Properties)
+            {
+                if (property.Name == name)
+                {
+                    return property;
+                }
+            }
+
+            // If we go through all the properties and we do not find any match
+            string message = String.Format("Property {0} not found", name);
+            VcWriteWarningMsg(message);
+
+            return null;
+        }
+
+        public void SetPropertyValueDouble(IProperty property, double value)
+        {
+            property.Value = value;
         }
 
         public void VcWriteWarningMsg(string message)

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using System.Diagnostics;
 using Caliburn.Micro;
 using System.ComponentModel.Composition;
 using VisualComponents.Create3D;
@@ -14,6 +15,9 @@ namespace vc2opcua
     [Export(typeof(IDockableScreen))]
     class Vc2OpcUaPanelViewModel : DockableScreen
     {
+        [Import]
+        IRenderService _renderService = null;
+
         VcManager _vcmanager = new VcManager();
         private string _host = "0.0.0.0";
         private string _port = "4840";
@@ -41,6 +45,25 @@ namespace vc2opcua
             string message = "Stop Button Clicked";
             _vcmanager.VcWriteWarningMsg(message);
         }
+
+        public void TestButton()
+        {
+            try
+            {
+                ISimComponent component = _vcmanager.GetComponent(Host);
+                IProperty property = _vcmanager.GetProperty(component, Port);
+                _vcmanager.SetPropertyValueDouble(property, double.Parse(TestText));
+
+                component.Rebuild();
+                _renderService.RequestRender();
+
+            } catch (Exception e)
+            {
+                Debug.WriteLine("Exception: {0}", e);
+            }
+        }
+
+        public string TestText { get ; set ; }
 
         public string Host
         {
