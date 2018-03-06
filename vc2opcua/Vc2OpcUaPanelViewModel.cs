@@ -14,7 +14,7 @@ namespace vc2opcua
     [Export(typeof(IDockableScreen))]
     class Vc2OpcUaPanelViewModel : DockableScreen
     {
-        IMessageService _ms = IoC.Get<IMessageService>();
+        VcManager _vcmanager = new VcManager();
 
         public Vc2OpcUaPanelViewModel()
         {
@@ -27,12 +27,14 @@ namespace vc2opcua
         {
             // Automatically related to element in *View.xaml having x:Name = this method's name
             string message = "Start Button Clicked";
-            _ms.AppendMessage(message, MessageLevel.Warning);
+            _vcmanager.VcWriteWarningMsg(message);
+
+            _vcmanager.GetComponentProperties();
         }
         public void Stop()
         {
              string message = "Stop Button Clicked";
-            _ms.AppendMessage(message, MessageLevel.Warning);
+             _vcmanager.VcWriteWarningMsg(message);
         }
     }
 }

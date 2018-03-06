@@ -71,6 +71,7 @@
       <DependentUpon>Vc2OpcUaPanelView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Vc2OpcUaPanelViewModel.cs" />
+    <Compile Include="Vc2OpcUaPlugin.cs" />
     <Compile Include="VcManager.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
