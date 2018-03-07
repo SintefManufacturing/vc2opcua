@@ -15,12 +15,15 @@ namespace vc2opcua
     [Export(typeof(IDockableScreen))]
     class Vc2OpcUaPanelViewModel : DockableScreen
     {
+        // Accesses the application itself, initialize to null for avoiding compiling errors
+        [Import]
+        IApplication _application = null;
+
         [Import]
         IRenderService _renderService = null;
 
+        VcUtils _vcutils = new VcUtils();
         VcManager _vcmanager = new VcManager();
-        private string _host = "0.0.0.0";
-        private string _port = "4840";
 
         public Vc2OpcUaPanelViewModel()
         {
@@ -29,52 +32,67 @@ namespace vc2opcua
             this.PaneLocation = DesiredPaneLocation.DockedRight;
         }
 
+        #region Properties
+
+        public string Text1 { get; set; } = "";
+        public string Text2 { get; set; } = "";
+        public string Text3 { get; set; } = "";
+
+        #endregion
+
+        #region Methods
+
+        // Add methods for listener to execute when component is added or removed
+        protected override void OnActivate()
+        {
+            _application.World.ComponentAdded += World_ComponentAdded;
+            _application.World.ComponentRemoving += World_ComponentRemoving;
+        }
+
+        protected override void OnDeactivate(bool close)
+        {
+            base.OnDeactivate(close);
+            _application.World.ComponentAdded -= World_ComponentAdded;
+            _application.World.ComponentRemoving -= World_ComponentRemoving;
+        }
+
+        private void World_ComponentAdded(object sender, ComponentAddedEventArgs e)
+        {
+            _vcutils.VcWriteWarningMsg("Component added: " + e.Component.Name);
+            _vcmanager.Components.Add(e.Component);
+        }
+
+        private void World_ComponentRemoving(object sender, ComponentRemovingEventArgs e)
+        {
+            _vcutils.VcWriteWarningMsg("Component removed: " + e.Component.Name);
+            _vcmanager.Components.Remove(e.Component);
+        }
+
         public void Start()
         {
             // Automatically related to element in *View.xaml having x:Name = this method's name
-
-            string message = String.Format("Starting OPCUA server: \n  Host: {0}\n  Port: {1}",
-                                           Host, Port);
-
-            _vcmanager.VcWriteWarningMsg(message);
-
-            _vcmanager.GetComponentProperties();
-        }
-        public void Stop()
-        {
-            string message = "Stop Button Clicked";
-            _vcmanager.VcWriteWarningMsg(message);
-        }
-
-        public void TestButton()
-        {
             try
             {
-                ISimComponent component = _vcmanager.GetComponent(Host);
-                IProperty property = _vcmanager.GetProperty(component, Port);
-                _vcmanager.SetPropertyValueDouble(property, double.Parse(TestText));
+                VcComponent component = new VcComponent(_vcmanager.GetComponent(Text1));
+                IProperty property = component.GetProperty(Text2);
 
-                component.Rebuild();
+                component.SetPropertyValueDouble(property, double.Parse(Text3));
+
                 _renderService.RequestRender();
 
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 Debug.WriteLine("Exception: {0}", e);
             }
         }
-
-        public string TestText { get ; set ; }
-
-        public string Host
+        public void Stop()
         {
-            get { return _host; }
-            set { _host = value; }
+            string message = "Stop Button Clicked";
+            _vcutils.VcWriteWarningMsg(message);
         }
-        public string Port
-        {
-            get { return _port; }
-            set { _port = value; }
-        }
+
+        #endregion
 
     }
 }

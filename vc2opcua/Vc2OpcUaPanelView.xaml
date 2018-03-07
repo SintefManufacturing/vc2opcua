@@ -16,20 +16,17 @@
             <RowDefinition Height="20"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
-            <RowDefinition Height="20"/>
-            <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="20"/>
-            
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
-        </Grid.RowDefinitions>
-        <TextBox x:Name="Host" Grid.Row="1" Grid.Column="1"></TextBox>
-        <TextBox x:Name="Port" Grid.Row="2" Grid.Column="1"></TextBox>
-        <Button x:Name="Start" Grid.Row="4" Grid.Column="1">Start</Button>
-        <Button x:Name="Stop" Grid.Row="5" Grid.Column="1">Stop</Button>
 
-        <TextBox x:Name="TestText" Grid.Row="7" Grid.Column="1"></TextBox>
-        <Button x:Name="TestButton" Grid.Row="8" Grid.Column="1">Test</Button>
+        </Grid.RowDefinitions>
+        <TextBox x:Name="Text1" Grid.Row="1" Grid.Column="1"></TextBox>
+        <TextBox x:Name="Text2" Grid.Row="2" Grid.Column="1"></TextBox>
+        <TextBox x:Name="Text3" Grid.Row="3" Grid.Column="1"></TextBox>
+        <Button x:Name="Start" Grid.Row="5" Grid.Column="1">Start</Button>
+        <Button x:Name="Stop" Grid.Row="6" Grid.Column="1">Stop</Button>
+
     </Grid>
 </UserControl>

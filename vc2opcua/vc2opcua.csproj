@@ -43,7 +43,8 @@
       <HintPath>..\..\..\Program Files\Visual Components\Visual Components Professional 4.0\Create3D.Shared.dll</HintPath>
     </Reference>
     <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Program Files\Visual Components\Visual Components Professional 4.0\log4net.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -72,6 +73,7 @@
     </Compile>
     <Compile Include="Vc2OpcUaPanelViewModel.cs" />
     <Compile Include="Vc2OpcUaPlugin.cs" />
+    <Compile Include="VcComponent.cs" />
     <Compile Include="VcManager.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -83,7 +85,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
