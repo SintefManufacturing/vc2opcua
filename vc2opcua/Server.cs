@@ -15,12 +15,13 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
+using System.Diagnostics;
 using Opc.Ua;
 using Opc.Ua.Configuration;
 using Opc.Ua.Server;
 using Vc2OpcUaServer;
 
-namespace NetCoreConsoleServer
+namespace vc2opcua
 {
     public class ApplicationMessageDlg : IApplicationMessageDlg
     {
@@ -38,11 +39,11 @@ namespace NetCoreConsoleServer
             if (ask)
             {
                 message += " (y/n, default y): ";
-                Console.Write(message);
+                Debug.Write(message);
             }
             else
             {
-                Console.WriteLine(message);
+                Debug.WriteLine(message);
             }
             if (ask)
             {
@@ -111,13 +112,13 @@ namespace NetCoreConsoleServer
                 exitCode = ExitCode.ErrorServerNotStarted;
                 // Start the server
                 ConsoleServer().Wait();
-                Console.WriteLine("[NapServer-Program.cs] Server started. Press Ctrl-C to exit...");
+                Debug.WriteLine("Server started");
                 exitCode = ExitCode.ErrorServerRunning;
             }
             catch (Exception ex)
             {
                 Utils.Trace("ServiceResultException:" + ex.Message);
-                Console.WriteLine("Exception: {0}", ex.Message);
+                Debug.WriteLine("Exception: {0}", ex.Message);
                 exitCode = ExitCode.ErrorServerException;
                 return;
             }
@@ -139,7 +140,7 @@ namespace NetCoreConsoleServer
 
             if (server != null)
             {
-                Console.WriteLine("Server stopped. Waiting for exit...");
+                Debug.WriteLine("Server stopped. Waiting for exit...");
 
                 using (UaServer _server = server)
                 {
@@ -163,11 +164,11 @@ namespace NetCoreConsoleServer
                 e.Accept = autoAccept;
                 if (autoAccept)
                 {
-                    Console.WriteLine("Accepted Certificate: {0}", e.Certificate.Subject);
+                    Debug.WriteLine("Accepted Certificate: {0}", e.Certificate.Subject);
                 }
                 else
                 {
-                    Console.WriteLine("Rejected Certificate: {0}", e.Certificate.Subject);
+                    Debug.WriteLine("Rejected Certificate: {0}", e.Certificate.Subject);
                 }
             }
         }
@@ -177,9 +178,9 @@ namespace NetCoreConsoleServer
             ApplicationInstance.MessageDlg = new ApplicationMessageDlg();
             ApplicationInstance application = new ApplicationInstance();
 
-            application.ApplicationName = "UA Core Server";
+            application.ApplicationName = "Vc2OpcUa Server";
             application.ApplicationType = ApplicationType.Server;
-            application.ConfigSectionName = Utils.IsRunningOnMono() ? "Opc.Ua.MonoSampleServer" : "Opc.Ua.SampleServer";
+            application.ConfigSectionName = "Vc2OpcUaServer";
 
             // load the application configuration.
             ApplicationConfiguration config = await application.LoadApplicationConfiguration(false);
@@ -196,7 +197,7 @@ namespace NetCoreConsoleServer
                 config.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
             }
 
-            Console.WriteLine("[NapServer-Program.cs] Start the server");
+            Debug.WriteLine("Start the server");
             // start the server.
             server = new UaServer();
             await application.Start(server);
@@ -234,7 +235,7 @@ namespace NetCoreConsoleServer
                     }
                     item += String.Format(":{0}", session.Id);
                 }
-                Console.WriteLine(item);
+                Debug.WriteLine(item);
             }
         }
 

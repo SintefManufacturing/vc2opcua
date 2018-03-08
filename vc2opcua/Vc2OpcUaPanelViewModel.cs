@@ -70,6 +70,17 @@ namespace vc2opcua
 
         public void Start()
         {
+            int stopTimeout = 0;
+            bool autoAccept = false;
+
+            // Start MyServer
+            MyServer server = new MyServer(autoAccept, stopTimeout);
+            server.Run();
+
+        }
+
+        public void Move()
+        {
             // Automatically related to element in *View.xaml having x:Name = this method's name
             try
             {
@@ -86,6 +97,7 @@ namespace vc2opcua
                 Debug.WriteLine("Exception: {0}", e);
             }
         }
+
         public void Stop()
         {
             string message = "Stop Button Clicked";

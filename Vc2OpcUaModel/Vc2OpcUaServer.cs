@@ -60,7 +60,7 @@ namespace Vc2OpcUaServer
 
             // it is up to the application to decide how to validate user identity tokens.
             // this function creates validators for SAML and X509 identity tokens.
-            CreateUserIdentityValidators(configuration);
+            //CreateUserIdentityValidators(configuration);
         }
 
         /// <summary>

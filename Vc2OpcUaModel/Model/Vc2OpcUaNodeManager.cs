@@ -39,7 +39,7 @@ namespace Vc2OpcUa
         protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context)
         {
             NodeStateCollection predefinedNodes = new NodeStateCollection();
-            predefinedNodes.LoadFromBinaryResource(context, "Opc.Ua.Sample.Vc2OpcUa.PredefinedNodes.uanodes", this.GetType().GetTypeInfo().Assembly, true);
+            predefinedNodes.LoadFromBinaryResource(context, "Vc2OpcUaServer.Model.Vc2OpcUa.PredefinedNodes.uanodes", this.GetType().GetTypeInfo().Assembly, true);
             return predefinedNodes;
         }
 
