@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using System.Threading;
 using System.Diagnostics;
 using Caliburn.Micro;
 using System.ComponentModel.Composition;
@@ -25,11 +26,20 @@ namespace vc2opcua
         VcUtils _vcutils = new VcUtils();
         VcManager _vcmanager = new VcManager();
 
+        Server _server;
+        Thread _serverthread;
+
         public Vc2OpcUaPanelViewModel()
         {
             this.DisplayName = "VC2OPCUA Panel";
             this.IsPinned = true;
             this.PaneLocation = DesiredPaneLocation.DockedRight;
+
+            int stopTimeout = 0;
+            bool autoAccept = false;
+
+            // Start Server
+            _server = new Server(autoAccept, stopTimeout);
         }
 
         #region Properties
@@ -70,13 +80,10 @@ namespace vc2opcua
 
         public void Start()
         {
-            int stopTimeout = 0;
-            bool autoAccept = false;
+            _vcutils.VcWriteWarningMsg("Start Button Clicked");
+            _serverthread = new Thread(new ThreadStart(_server.Run));
 
-            // Start MyServer
-            MyServer server = new MyServer(autoAccept, stopTimeout);
-            server.Run();
-
+            _serverthread.Start();
         }
 
         public void Move()
@@ -100,8 +107,9 @@ namespace vc2opcua
 
         public void Stop()
         {
-            string message = "Stop Button Clicked";
-            _vcutils.VcWriteWarningMsg(message);
+            _vcutils.VcWriteWarningMsg("Stop Button Clicked");
+            _server.Stop();
+            _serverthread.Abort();
         }
 
         #endregion

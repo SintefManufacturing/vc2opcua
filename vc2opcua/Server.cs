@@ -71,25 +71,7 @@ namespace vc2opcua
         ErrorInvalidCommandLine = 0x100
     };
 
-    public class Program
-    {
-
-        public static int Main(string[] args)
-        {
-            // command line options
-            bool showHelp = false;
-            int stopTimeout = 0;
-            bool autoAccept = false;
-
-            // Start MyServer
-            MyServer server = new MyServer(autoAccept, stopTimeout);
-            server.Run();
-
-            return (int)MyServer.ExitCode;
-        }
-    }
-
-    public class MyServer
+    public class Server
     {
         UaServer server;
         Task status;
@@ -98,7 +80,9 @@ namespace vc2opcua
         static bool autoAccept = false;
         static ExitCode exitCode;
 
-        public MyServer(bool _autoAccept, int _stopTimeout)
+        public Thread ServerThread;
+
+        public Server(bool _autoAccept, int _stopTimeout)
         {
             autoAccept = _autoAccept;
             serverRunTime = _stopTimeout == 0 ? Timeout.Infinite : _stopTimeout * 1000;
@@ -153,6 +137,18 @@ namespace vc2opcua
             }
 
             exitCode = ExitCode.Ok;
+        }
+
+        public void Stop()
+        {
+            using (UaServer _server = server)
+            {
+                // Stop status thread
+                server = null;
+                status.Wait();
+                // Stop server and dispose
+                _server.Stop();
+            }
         }
 
         public static ExitCode ExitCode { get => exitCode; }
@@ -257,4 +253,5 @@ namespace vc2opcua
             }
         }
     }
+
 }
