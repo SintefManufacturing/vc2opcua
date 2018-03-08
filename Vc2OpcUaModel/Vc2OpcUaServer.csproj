@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Model\Vc2OpcUa.NodeSet2.xml" />
+    <None Remove="Model\Vc2OpcUa.PredefinedNodes.xml" />
+    <None Remove="Model\Vc2OpcUaDesign.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Model\Vc2OpcUa.NodeSet2.xml" />
+    <Content Include="Model\Vc2OpcUa.PredefinedNodes.xml" />
+    <Content Include="Model\Vc2OpcUaDesign.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\UA-.NETStandard\SampleApplications\SDK\Opc.Ua.Server\Opc.Ua.Server.csproj" />
+  </ItemGroup>
+
+</Project>
