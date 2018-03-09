@@ -1,0 +1,51 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<opc:ModelDesign
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:opc="http://opcfoundation.org/UA/ModelDesign.xsd"
+  xmlns:ua="http://opcfoundation.org/UA/"
+  xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd"
+  xmlns= "vc2opcua:namespace"
+  TargetNamespace="vc2opcua:namespace"
+>
+
+  <opc:Namespaces>
+    <opc:Namespace Name="OpcUa" Prefix="Opc.Ua" InternalPrefix="Opc.Ua.Server" XmlNamespace="http://opcfoundation.org/UA/2008/02/Types.xsd">http://opcfoundation.org/UA/</opc:Namespace>
+    <opc:Namespace Name="vc2opcua" Prefix="vc2opcua">vc2opcua:namespace</opc:Namespace>
+  </opc:Namespaces>
+
+  <opc:ObjectType SymbolicName="ComponentType" BaseType="ua:BaseObjectType" SupportsEvents="true">
+    <opc:Description>VC component.</opc:Description>
+    <opc:Children>
+      <opc:Property SymbolicName="Signal" DataType="ua:Boolean">
+        <opc:BrowseName>Signal</opc:BrowseName>
+      </opc:Property>
+    </opc:Children>
+  </opc:ObjectType>
+  
+  <opc:Object SymbolicName="VisualComponents" TypeDefinition="ua:FolderType" SupportsEvents="true">
+    <opc:Children>
+      <opc:Object SymbolicName="VcApplication" TypeDefinition="ua:BaseObjectType" SupportsEvents="true">
+        <opc:BrowseName>VC Application</opc:BrowseName>
+      </opc:Object>      
+      <opc:Object SymbolicName="Components" TypeDefinition="ua:FolderType" SupportsEvents="true">
+        <opc:BrowseName>Components</opc:BrowseName>
+      </opc:Object>
+    </opc:Children>
+    <opc:References>
+      <opc:Reference IsInverse="true">
+        <opc:ReferenceType>ua:Organizes</opc:ReferenceType>
+        <opc:TargetId>ua:ObjectsFolder</opc:TargetId>
+      </opc:Reference>
+      <opc:Reference IsInverse="true">
+        <opc:ReferenceType>ua:HasNotifier</opc:ReferenceType>
+        <opc:TargetId>ua:Server</opc:TargetId>
+      </opc:Reference>
+    </opc:References>
+  </opc:Object>
+</opc:ModelDesign>
+
+
+
+
+

@@ -34,6 +34,6 @@ using System.Xml;
 using System.Runtime.Serialization;
 using Opc.Ua;
 
-namespace Vc2OpcUa
+namespace vc2opcua
 {
 }

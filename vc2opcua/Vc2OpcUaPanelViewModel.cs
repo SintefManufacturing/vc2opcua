@@ -77,7 +77,7 @@ namespace vc2opcua
             _vcutils.VcWriteWarningMsg("Start Button Clicked");
 
             // Start Server
-            _server = new Server(false, 0, _vcmanager.Components);
+            _server = new Server(false, 0);
             _serverthread = new Thread(new ThreadStart(_server.Run));
 
             _serverthread.Start();

@@ -35,7 +35,7 @@ using System.Xml;
 using System.Runtime.Serialization;
 using Opc.Ua;
 
-namespace Vc2OpcUa
+namespace vc2opcua
 {
     #region Object Identifiers
     /// <summary>
@@ -103,17 +103,17 @@ namespace Vc2OpcUa
         /// <summary>
         /// The identifier for the VisualComponents Object.
         /// </summary>
-        public static readonly ExpandedNodeId VisualComponents = new ExpandedNodeId(Vc2OpcUa.Objects.VisualComponents, Vc2OpcUa.Namespaces.Vc2OpcUa);
+        public static readonly ExpandedNodeId VisualComponents = new ExpandedNodeId(vc2opcua.Objects.VisualComponents, vc2opcua.Namespaces.vc2opcua);
 
         /// <summary>
         /// The identifier for the VisualComponents_VcApplication Object.
         /// </summary>
-        public static readonly ExpandedNodeId VisualComponents_VcApplication = new ExpandedNodeId(Vc2OpcUa.Objects.VisualComponents_VcApplication, Vc2OpcUa.Namespaces.Vc2OpcUa);
+        public static readonly ExpandedNodeId VisualComponents_VcApplication = new ExpandedNodeId(vc2opcua.Objects.VisualComponents_VcApplication, vc2opcua.Namespaces.vc2opcua);
 
         /// <summary>
         /// The identifier for the VisualComponents_Components Object.
         /// </summary>
-        public static readonly ExpandedNodeId VisualComponents_Components = new ExpandedNodeId(Vc2OpcUa.Objects.VisualComponents_Components, Vc2OpcUa.Namespaces.Vc2OpcUa);
+        public static readonly ExpandedNodeId VisualComponents_Components = new ExpandedNodeId(vc2opcua.Objects.VisualComponents_Components, vc2opcua.Namespaces.vc2opcua);
     }
     #endregion
 
@@ -128,7 +128,7 @@ namespace Vc2OpcUa
         /// <summary>
         /// The identifier for the ComponentType ObjectType.
         /// </summary>
-        public static readonly ExpandedNodeId ComponentType = new ExpandedNodeId(Vc2OpcUa.ObjectTypes.ComponentType, Vc2OpcUa.Namespaces.Vc2OpcUa);
+        public static readonly ExpandedNodeId ComponentType = new ExpandedNodeId(vc2opcua.ObjectTypes.ComponentType, vc2opcua.Namespaces.vc2opcua);
     }
     #endregion
 
@@ -143,7 +143,7 @@ namespace Vc2OpcUa
         /// <summary>
         /// The identifier for the ComponentType_Signal Variable.
         /// </summary>
-        public static readonly ExpandedNodeId ComponentType_Signal = new ExpandedNodeId(Vc2OpcUa.Variables.ComponentType_Signal, Vc2OpcUa.Namespaces.Vc2OpcUa);
+        public static readonly ExpandedNodeId ComponentType_Signal = new ExpandedNodeId(vc2opcua.Variables.ComponentType_Signal, vc2opcua.Namespaces.vc2opcua);
     }
     #endregion
 
@@ -199,9 +199,9 @@ namespace Vc2OpcUa
         public const string OpcUaXsd = "http://opcfoundation.org/UA/2008/02/Types.xsd";
 
         /// <summary>
-        /// The URI for the Vc2OpcUa namespace (.NET code namespace is 'Vc2OpcUa').
+        /// The URI for the vc2opcua namespace (.NET code namespace is 'vc2opcua').
         /// </summary>
-        public const string Vc2OpcUa = "vc2opcua:namespace";
+        public const string vc2opcua = "vc2opcua:namespace";
     }
     #endregion
 }

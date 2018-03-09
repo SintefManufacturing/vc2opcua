@@ -11,7 +11,7 @@
 
   <opc:Namespaces>
     <opc:Namespace Name="OpcUa" Prefix="Opc.Ua" InternalPrefix="Opc.Ua.Server" XmlNamespace="http://opcfoundation.org/UA/2008/02/Types.xsd">http://opcfoundation.org/UA/</opc:Namespace>
-    <opc:Namespace Name="Vc2OpcUa" Prefix="Vc2OpcUa">vc2opcua:namespace</opc:Namespace>
+    <opc:Namespace Name="vc2opcua" Prefix="vc2opcua">vc2opcua:namespace</opc:Namespace>
   </opc:Namespaces>
 
   <opc:ObjectType SymbolicName="ComponentType" BaseType="ua:BaseObjectType" SupportsEvents="true">

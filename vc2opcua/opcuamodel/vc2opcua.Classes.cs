@@ -34,7 +34,7 @@ using System.Xml;
 using System.Runtime.Serialization;
 using Opc.Ua;
 
-namespace Vc2OpcUa
+namespace vc2opcua
 {
     #region ComponentState Class
     #if (!OPCUA_EXCLUDE_ComponentState)
@@ -58,7 +58,7 @@ namespace Vc2OpcUa
         /// </summary>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
         {
-            return Opc.Ua.NodeId.Create(Vc2OpcUa.ObjectTypes.ComponentType, Vc2OpcUa.Namespaces.Vc2OpcUa, namespaceUris);
+            return Opc.Ua.NodeId.Create(vc2opcua.ObjectTypes.ComponentType, vc2opcua.Namespaces.vc2opcua, namespaceUris);
         }
 
         #if (!OPCUA_EXCLUDE_InitializationStrings)
@@ -156,7 +156,7 @@ namespace Vc2OpcUa
 
             switch (browseName.Name)
             {
-                case Vc2OpcUa.BrowseNames.Signal:
+                case vc2opcua.BrowseNames.Signal:
                 {
                     if (createOrReplace)
                     {

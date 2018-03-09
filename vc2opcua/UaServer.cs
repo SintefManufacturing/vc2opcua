@@ -1,68 +1,115 @@
-﻿/* Copyright (c) 1996-2016, OPC Foundation. All rights reserved.
-   The source code in this file is covered under a dual-license scenario:
-     - RCL: for OPC Foundation members in good-standing
-     - GPL V2: everybody else
-   RCL license terms accompanied with this source code. See http://opcfoundation.org/License/RCL/1.00/
-   GNU General Public License as published by the Free Software Foundation;
-   version 2 of the License are accompanied with this source code. See http://opcfoundation.org/License/GPLv2
-   This source code is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*/
-
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-using System.Diagnostics;
-using System.Collections.ObjectModel;
-using VisualComponents.Create3D;
 using Opc.Ua;
 using Opc.Ua.Configuration;
 using Opc.Ua.Server;
-using Vc2OpcUaServer;
 
 namespace vc2opcua
 {
-    public class ApplicationMessageDlg : IApplicationMessageDlg
+    /// <summary>
+    /// A class which implements an instance of a UA server.
+    /// </summary>
+    public partial class OpcUaServer : StandardServer
     {
-        private string message = string.Empty;
-        private bool ask = false;
 
-        public override void Message(string text, bool ask)
+        #region Overridden Methods
+        /// <summary>
+        /// Initializes the server before it starts up.
+        /// </summary>
+        /// <remarks>
+        /// This method is called before any startup processing occurs. The sub-class may update the 
+        /// configuration object or do any other application specific startup tasks.
+        /// </remarks>
+        protected override void OnServerStarting(ApplicationConfiguration configuration)
         {
-            this.message = text;
-            this.ask = ask;
+            Debug.WriteLine("The server is starting.");
+
+            base.OnServerStarting(configuration);
         }
 
-        public override async Task<bool> ShowAsync()
+        /// <summary>
+        /// Cleans up before the server shuts down.
+        /// </summary>
+        /// <remarks>
+        /// This method is called before any shutdown processing occurs.
+        /// </remarks>
+        protected override void OnServerStopping()
         {
-            if (ask)
-            {
-                message += " (y/n, default y): ";
-                Debug.Write(message);
-            }
-            else
-            {
-                Debug.WriteLine(message);
-            }
-            if (ask)
-            {
-                try
-                {
-                    ConsoleKeyInfo result = Console.ReadKey();
-                    Console.WriteLine();
-                    return await Task.FromResult((result.KeyChar == 'y') || (result.KeyChar == 'Y') || (result.KeyChar == '\r'));
-                }
-                catch
-                {
-                    // intentionally fall through
-                }
-            }
-            return await Task.FromResult(true);
+            Debug.WriteLine("The Server is stopping.");
+
+            base.OnServerStopping();
         }
+
+        /// <summary>
+        /// Creates the node managers for the server.
+        /// </summary>
+        /// <remarks>
+        /// This method allows the sub-class create any additional node managers which it uses. The SDK
+        /// always creates a CoreNodeManager which handles the built-in nodes defined by the specification.
+        /// Any additional NodeManagers are expected to handle application specific nodes.
+        /// 
+        /// Applications with small address spaces do not need to create their own NodeManagers and can add any
+        /// application specific nodes to the CoreNodeManager. Applications should use custom NodeManagers when
+        /// the structure of the address space is stored in another system or when the address space is too large
+        /// to keep in memory.
+        /// </remarks>
+        protected override MasterNodeManager CreateMasterNodeManager(IServerInternal server, ApplicationConfiguration configuration)
+        {
+            Debug.WriteLine("Creating the Node Managers.");
+
+            List<INodeManager> nodeManagers = new List<INodeManager>();
+
+            // create the custom node managers.
+            nodeManagers.Add(new OpcUaNodeManager(server, configuration));
+
+            // create master node manager.
+            return new MasterNodeManager(server, configuration, null, nodeManagers.ToArray());
+        }
+
+
+        /// <summary>
+        /// Loads the non-configurable properties for the application.
+        /// </summary>
+        /// <remarks>
+        /// These properties are exposed by the server but cannot be changed by administrators.
+        /// </remarks>
+        protected override ServerProperties LoadServerProperties()
+        {
+            ServerProperties properties = new ServerProperties();
+
+            properties.ManufacturerName = "OPC Foundation";
+            properties.ProductName = "OPC UA SDK Samples";
+            properties.ProductUri = "http://opcfoundation.org/UA/Samples/v1.0";
+            properties.SoftwareVersion = Utils.GetAssemblySoftwareVersion();
+            properties.BuildNumber = Utils.GetAssemblyBuildNumber();
+            properties.BuildDate = Utils.GetAssemblyTimestamp();
+
+            return properties;
+        }
+
+        /// <summary>
+        /// Initializes the address space after the NodeManagers have started.
+        /// </summary>
+        /// <remarks>
+        /// This method can be used to create any initialization that requires access to node managers.
+        /// </remarks>
+        protected override void OnNodeManagerStarted(IServerInternal server)
+        {
+            Debug.WriteLine("The NodeManagers have started.");
+
+            // allow base class processing to happen first.
+            base.OnNodeManagerStarted(server);
+        }
+        #endregion
     }
+
+
 
     public enum ExitCode : int
     {
@@ -75,22 +122,19 @@ namespace vc2opcua
 
     public class Server
     {
-        UaServer server;
+        OpcUaServer server;
         Task status;
         DateTime lastEventTime;
         int serverRunTime = Timeout.Infinite;
         static bool autoAccept = false;
         static ExitCode exitCode;
 
-        private Collection<ISimComponent> components;
-
         public Thread ServerThread;
 
-        public Server(bool _autoAccept, int _stopTimeout, Collection<ISimComponent> comps)
+        public Server(bool _autoAccept, int _stopTimeout)
         {
             autoAccept = _autoAccept;
             serverRunTime = _stopTimeout == 0 ? Timeout.Infinite : _stopTimeout * 1000;
-            components = comps;
         }
 
         public void Run()
@@ -100,7 +144,7 @@ namespace vc2opcua
             {
                 exitCode = ExitCode.ErrorServerNotStarted;
                 // Start the server
-                ConsoleServer().Wait();
+                ServerTask().Wait();
                 Debug.WriteLine("Server started");
                 exitCode = ExitCode.ErrorServerRunning;
             }
@@ -111,72 +155,26 @@ namespace vc2opcua
                 exitCode = ExitCode.ErrorServerException;
                 return;
             }
-
-            ManualResetEvent quitEvent = new ManualResetEvent(false);
-            try
-            {
-                Console.CancelKeyPress += (sender, eArgs) => {
-                    quitEvent.Set();
-                    eArgs.Cancel = true;
-                };
-            }
-            catch
-            {
-            }
-
-            // wait for timeout or Ctrl-C
-            quitEvent.WaitOne(serverRunTime);
-
-            if (server != null)
-            {
-                Debug.WriteLine("Server stopped. Waiting for exit...");
-
-                using (UaServer _server = server)
-                {
-                    // Stop status thread
-                    server = null;
-                    status.Wait();
-                    // Stop server and dispose
-                    _server.Stop();
-                }
-            }
-
-            exitCode = ExitCode.Ok;
         }
 
         public void Stop()
         {
-            using (UaServer _server = server)
+            using (OpcUaServer _server = server)
             {
                 // Stop status thread
                 server = null;
                 status.Wait();
                 // Stop server and dispose
                 _server.Stop();
+                exitCode = ExitCode.Ok;
             }
         }
 
         public static ExitCode ExitCode { get => exitCode; }
 
-        private static void CertificateValidator_CertificateValidation(CertificateValidator validator, CertificateValidationEventArgs e)
+        private async Task ServerTask()
         {
-            if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
-            {
-                e.Accept = autoAccept;
-                if (autoAccept)
-                {
-                    Debug.WriteLine("Accepted Certificate: {0}", e.Certificate.Subject);
-                }
-                else
-                {
-                    Debug.WriteLine("Rejected Certificate: {0}", e.Certificate.Subject);
-                }
-            }
-        }
-
-        private async Task ConsoleServer()
-        {
-            ApplicationInstance.MessageDlg = new ApplicationMessageDlg();
+            //ApplicationInstance.MessageDlg = new ApplicationMessageDlg();
             ApplicationInstance application = new ApplicationInstance();
 
             application.ApplicationName = "Vc2OpcUa Server";
@@ -186,21 +184,9 @@ namespace vc2opcua
             // load the application configuration.
             ApplicationConfiguration config = await application.LoadApplicationConfiguration(false);
 
-            // check the application certificate.
-            bool haveAppCertificate = await application.CheckApplicationInstanceCertificate(false, 0);
-            if (!haveAppCertificate)
-            {
-                throw new Exception("Application instance certificate invalid!");
-            }
-
-            if (!config.SecurityConfiguration.AutoAcceptUntrustedCertificates)
-            {
-                config.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
-            }
-
             Debug.WriteLine("Start the server");
             // start the server.
-            server = new UaServer(components);
+            server = new OpcUaServer();
             await application.Start(server);
 
             // start the status thread
@@ -258,5 +244,4 @@ namespace vc2opcua
             }
         }
     }
-
 }
