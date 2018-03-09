@@ -35,6 +35,9 @@ using Opc.Ua.Server;
 using System.Collections.Generic;
 using System.Diagnostics;
 
+using VisualComponents.Create3D;
+using System.Collections.ObjectModel;
+
 using Vc2OpcUa;
 
 namespace Vc2OpcUaServer
@@ -44,6 +47,14 @@ namespace Vc2OpcUaServer
     /// </summary>
     public partial class UaServer : StandardServer
     {
+        private Collection<ISimComponent> components;
+
+        #region Constructors
+        public UaServer(Collection<ISimComponent> comps)
+        {
+            components = comps;
+        }
+        #endregion
         #region Overridden Methods
         /// <summary>
         /// Initializes the server before it starts up.
@@ -112,10 +123,7 @@ namespace Vc2OpcUaServer
             List<INodeManager> nodeManagers = new List<INodeManager>();
 
             // create the custom node managers.
-            //nodeManagers.Add(new global::TestData.TestDataNodeManager(server, configuration));
-            //nodeManagers.Add(new global::MemoryBuffer.MemoryBufferNodeManager(server, configuration));
-            //nodeManagers.Add(new global::Boiler.BoilerNodeManager(server, configuration));
-            nodeManagers.Add(new Vc2OpcUaNodeManager(server, configuration));
+            nodeManagers.Add(new Vc2OpcUaNodeManager(server, configuration, components));
 
             // create master node manager.
             return new MasterNodeManager(server, configuration, null, nodeManagers.ToArray());

@@ -16,6 +16,8 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using System.Diagnostics;
+using System.Collections.ObjectModel;
+using VisualComponents.Create3D;
 using Opc.Ua;
 using Opc.Ua.Configuration;
 using Opc.Ua.Server;
@@ -80,12 +82,15 @@ namespace vc2opcua
         static bool autoAccept = false;
         static ExitCode exitCode;
 
+        private Collection<ISimComponent> components;
+
         public Thread ServerThread;
 
-        public Server(bool _autoAccept, int _stopTimeout)
+        public Server(bool _autoAccept, int _stopTimeout, Collection<ISimComponent> comps)
         {
             autoAccept = _autoAccept;
             serverRunTime = _stopTimeout == 0 ? Timeout.Infinite : _stopTimeout * 1000;
+            components = comps;
         }
 
         public void Run()
@@ -195,11 +200,11 @@ namespace vc2opcua
 
             Debug.WriteLine("Start the server");
             // start the server.
-            server = new UaServer();
+            server = new UaServer(components);
             await application.Start(server);
 
             // start the status thread
-            status = Task.Run(new Action(StatusThread));
+            status = Task.Run(new System.Action(StatusThread));
 
             // print notification on session events
             server.CurrentInstance.SessionManager.SessionActivated += EventStatus;

@@ -25,4 +25,10 @@
     <ProjectReference Include="..\..\UA-.NETStandard\SampleApplications\SDK\Opc.Ua.Server\Opc.Ua.Server.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Create3D.Shared">
+      <HintPath>..\..\..\Program Files\Visual Components\Visual Components Professional 4.0\Create3D.Shared.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

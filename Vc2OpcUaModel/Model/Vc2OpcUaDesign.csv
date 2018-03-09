@@ -1,3 +1,5 @@
 VisualComponents,15001,Object
 VisualComponents_VcApplication,15002,Object
 VisualComponents_Components,15003,Object
+ComponentType,15004,ObjectType
+ComponentType_Signal,15005,Variable

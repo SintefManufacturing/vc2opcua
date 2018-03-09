@@ -13,6 +13,15 @@
     <opc:Namespace Name="OpcUa" Prefix="Opc.Ua" InternalPrefix="Opc.Ua.Server" XmlNamespace="http://opcfoundation.org/UA/2008/02/Types.xsd">http://opcfoundation.org/UA/</opc:Namespace>
     <opc:Namespace Name="Vc2OpcUa" Prefix="Vc2OpcUa">vc2opcua:namespace</opc:Namespace>
   </opc:Namespaces>
+
+  <opc:ObjectType SymbolicName="ComponentType" BaseType="ua:BaseObjectType" SupportsEvents="true">
+    <opc:Description>VC component.</opc:Description>
+    <opc:Children>
+      <opc:Property SymbolicName="Signal" DataType="ua:Boolean">
+        <opc:BrowseName>Signal</opc:BrowseName>
+      </opc:Property>
+    </opc:Children>
+  </opc:ObjectType>
   
   <opc:Object SymbolicName="VisualComponents" TypeDefinition="ua:FolderType" SupportsEvents="true">
     <opc:Children>

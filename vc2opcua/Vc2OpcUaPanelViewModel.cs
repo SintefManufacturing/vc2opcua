@@ -34,12 +34,6 @@ namespace vc2opcua
             this.DisplayName = "VC2OPCUA Panel";
             this.IsPinned = true;
             this.PaneLocation = DesiredPaneLocation.DockedRight;
-
-            int stopTimeout = 0;
-            bool autoAccept = false;
-
-            // Start Server
-            _server = new Server(autoAccept, stopTimeout);
         }
 
         #region Properties
@@ -81,11 +75,50 @@ namespace vc2opcua
         public void Start()
         {
             _vcutils.VcWriteWarningMsg("Start Button Clicked");
+
+            // Start Server
+            _server = new Server(false, 0, _vcmanager.Components);
             _serverthread = new Thread(new ThreadStart(_server.Run));
 
             _serverthread.Start();
+            CanStart = false;
+            CanStop = true;
         }
 
+
+        public void Stop()
+        {
+            _vcutils.VcWriteWarningMsg("Stop Button Clicked");
+            _server.Stop();
+            _serverthread.Abort();
+
+            CanStart = true;
+            CanStop = false;
+        }
+
+        private bool _canstart = true;
+        public bool CanStart
+        {
+            get { return _canstart; }
+            private set
+            {
+                _canstart = value;
+                NotifyOfPropertyChange(() => CanStart);
+            }
+        }
+
+        private bool _canstop = false;
+        public bool CanStop
+        {
+            get { return _canstop; }
+            private set
+            {
+                _canstop = value;
+                NotifyOfPropertyChange(() => CanStop);
+            }
+        }
+
+        /*
         public void Move()
         {
             // Automatically related to element in *View.xaml having x:Name = this method's name
@@ -103,14 +136,7 @@ namespace vc2opcua
             {
                 Debug.WriteLine("Exception: {0}", e);
             }
-        }
-
-        public void Stop()
-        {
-            _vcutils.VcWriteWarningMsg("Stop Button Clicked");
-            _server.Stop();
-            _serverthread.Abort();
-        }
+        }*/
 
         #endregion
 

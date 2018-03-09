@@ -15,20 +15,13 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="20"/>
             <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="20"/>
-            <RowDefinition Height="auto"/>
+            <RowDefinition Height="5"/>
             <RowDefinition Height="auto"/>
 
         </Grid.RowDefinitions>
-        <TextBox x:Name="Text1" Grid.Row="1" Grid.Column="1"></TextBox>
-        <TextBox x:Name="Text2" Grid.Row="2" Grid.Column="1"></TextBox>
-        <TextBox x:Name="Text3" Grid.Row="3" Grid.Column="1"></TextBox>
-        <Button x:Name="Move" Grid.Row="4" Grid.Column="1">Move</Button>
-        <Button x:Name="Start" Grid.Row="6" Grid.Column="1">Start</Button>
-        <Button x:Name="Stop" Grid.Row="7" Grid.Column="1">Stop</Button>
+
+        <Button x:Name="Start" Grid.Row="1" Grid.Column="1">Start</Button>
+        <Button x:Name="Stop" Grid.Row="3" Grid.Column="1">Stop</Button>
 
     </Grid>
 </UserControl>

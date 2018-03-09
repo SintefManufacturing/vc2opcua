@@ -62,6 +62,36 @@ namespace Vc2OpcUa
     }
     #endregion
 
+    #region ObjectType Identifiers
+    /// <summary>
+    /// A class that declares constants for all ObjectTypes in the Model Design.
+    /// </summary>
+    /// <exclude />
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
+    public static partial class ObjectTypes
+    {
+        /// <summary>
+        /// The identifier for the ComponentType ObjectType.
+        /// </summary>
+        public const uint ComponentType = 15004;
+    }
+    #endregion
+
+    #region Variable Identifiers
+    /// <summary>
+    /// A class that declares constants for all Variables in the Model Design.
+    /// </summary>
+    /// <exclude />
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
+    public static partial class Variables
+    {
+        /// <summary>
+        /// The identifier for the ComponentType_Signal Variable.
+        /// </summary>
+        public const uint ComponentType_Signal = 15005;
+    }
+    #endregion
+
     #region Object Node Identifiers
     /// <summary>
     /// A class that declares constants for all Objects in the Model Design.
@@ -87,6 +117,36 @@ namespace Vc2OpcUa
     }
     #endregion
 
+    #region ObjectType Node Identifiers
+    /// <summary>
+    /// A class that declares constants for all ObjectTypes in the Model Design.
+    /// </summary>
+    /// <exclude />
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
+    public static partial class ObjectTypeIds
+    {
+        /// <summary>
+        /// The identifier for the ComponentType ObjectType.
+        /// </summary>
+        public static readonly ExpandedNodeId ComponentType = new ExpandedNodeId(Vc2OpcUa.ObjectTypes.ComponentType, Vc2OpcUa.Namespaces.Vc2OpcUa);
+    }
+    #endregion
+
+    #region Variable Node Identifiers
+    /// <summary>
+    /// A class that declares constants for all Variables in the Model Design.
+    /// </summary>
+    /// <exclude />
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
+    public static partial class VariableIds
+    {
+        /// <summary>
+        /// The identifier for the ComponentType_Signal Variable.
+        /// </summary>
+        public static readonly ExpandedNodeId ComponentType_Signal = new ExpandedNodeId(Vc2OpcUa.Variables.ComponentType_Signal, Vc2OpcUa.Namespaces.Vc2OpcUa);
+    }
+    #endregion
+
     #region BrowseName Declarations
     /// <summary>
     /// Declares all of the BrowseNames used in the Model Design.
@@ -98,6 +158,16 @@ namespace Vc2OpcUa
         /// The BrowseName for the Components component.
         /// </summary>
         public const string Components = "Components";
+
+        /// <summary>
+        /// The BrowseName for the ComponentType component.
+        /// </summary>
+        public const string ComponentType = "ComponentType";
+
+        /// <summary>
+        /// The BrowseName for the Signal component.
+        /// </summary>
+        public const string Signal = "Signal";
 
         /// <summary>
         /// The BrowseName for the VcApplication component.
