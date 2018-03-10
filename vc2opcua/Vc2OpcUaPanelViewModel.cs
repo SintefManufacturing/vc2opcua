@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,7 +25,6 @@ namespace vc2opcua
         IRenderService _renderService = null;
 
         VcUtils _vcutils = new VcUtils();
-        VcManager _vcmanager = new VcManager();
 
         Server _server;
         Thread _serverthread;
@@ -37,6 +37,8 @@ namespace vc2opcua
         }
 
         #region Properties
+
+        public Collection<ISimComponent> Components { get; set; } = new Collection<ISimComponent>();
 
         public string Text1 { get; set; } = "";
         public string Text2 { get; set; } = "";
@@ -63,13 +65,13 @@ namespace vc2opcua
         private void World_ComponentAdded(object sender, ComponentAddedEventArgs e)
         {
             _vcutils.VcWriteWarningMsg("Component added: " + e.Component.Name);
-            _vcmanager.Components.Add(e.Component);
+            Components.Add(e.Component);
         }
 
         private void World_ComponentRemoving(object sender, ComponentRemovingEventArgs e)
         {
             _vcutils.VcWriteWarningMsg("Component removed: " + e.Component.Name);
-            _vcmanager.Components.Remove(e.Component);
+            Components.Remove(e.Component);
         }
 
         public void Start()
@@ -84,7 +86,6 @@ namespace vc2opcua
             CanStart = false;
             CanStop = true;
         }
-
 
         public void Stop()
         {

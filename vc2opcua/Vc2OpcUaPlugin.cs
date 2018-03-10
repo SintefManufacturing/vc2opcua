@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,10 +14,10 @@ using log4net.Core;
 
 namespace vc2opcua
 {
+
     [Export(typeof(IPlugin))]
     public class Vc2OpcUaPlugin : IPlugin
     {
-
         VcUtils _vcutils = new VcUtils();
 
         void IPlugin.Exit()
@@ -33,6 +34,9 @@ namespace vc2opcua
 
     public class VcUtils //: IAppender
     {
+        [Import]
+        IApplication _application = null;
+
         IMessageService _ms = IoC.Get<IMessageService>();
 
         //private log4net.ILog log;
@@ -46,6 +50,14 @@ namespace vc2opcua
             log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
             ((log4net.Repository.Hierarchy.Hierarchy)log4net.LogManager.GetRepository()).Root.AddAppender(this);
             */
+        }
+
+        public ReadOnlyCollection<ISimComponent>  GetComponents()
+        {
+            _application = IoC.Get<IApplication>();
+            ReadOnlyCollection<ISimComponent> components = _application.World.Components;
+
+            return components;
         }
 
         public void VcWriteWarningMsg(string message)

@@ -12,113 +12,6 @@ using Opc.Ua.Server;
 
 namespace vc2opcua
 {
-    /// <summary>
-    /// A class which implements an instance of a UA server.
-    /// </summary>
-    public partial class OpcUaServer : StandardServer
-    {
-
-        #region Overridden Methods
-        /// <summary>
-        /// Initializes the server before it starts up.
-        /// </summary>
-        /// <remarks>
-        /// This method is called before any startup processing occurs. The sub-class may update the 
-        /// configuration object or do any other application specific startup tasks.
-        /// </remarks>
-        protected override void OnServerStarting(ApplicationConfiguration configuration)
-        {
-            Debug.WriteLine("The server is starting.");
-
-            base.OnServerStarting(configuration);
-        }
-
-        /// <summary>
-        /// Cleans up before the server shuts down.
-        /// </summary>
-        /// <remarks>
-        /// This method is called before any shutdown processing occurs.
-        /// </remarks>
-        protected override void OnServerStopping()
-        {
-            Debug.WriteLine("The Server is stopping.");
-
-            base.OnServerStopping();
-        }
-
-        /// <summary>
-        /// Creates the node managers for the server.
-        /// </summary>
-        /// <remarks>
-        /// This method allows the sub-class create any additional node managers which it uses. The SDK
-        /// always creates a CoreNodeManager which handles the built-in nodes defined by the specification.
-        /// Any additional NodeManagers are expected to handle application specific nodes.
-        /// 
-        /// Applications with small address spaces do not need to create their own NodeManagers and can add any
-        /// application specific nodes to the CoreNodeManager. Applications should use custom NodeManagers when
-        /// the structure of the address space is stored in another system or when the address space is too large
-        /// to keep in memory.
-        /// </remarks>
-        protected override MasterNodeManager CreateMasterNodeManager(IServerInternal server, ApplicationConfiguration configuration)
-        {
-            Debug.WriteLine("Creating the Node Managers.");
-
-            List<INodeManager> nodeManagers = new List<INodeManager>();
-
-            // create the custom node managers.
-            nodeManagers.Add(new OpcUaNodeManager(server, configuration));
-
-            // create master node manager.
-            return new MasterNodeManager(server, configuration, null, nodeManagers.ToArray());
-        }
-
-
-        /// <summary>
-        /// Loads the non-configurable properties for the application.
-        /// </summary>
-        /// <remarks>
-        /// These properties are exposed by the server but cannot be changed by administrators.
-        /// </remarks>
-        protected override ServerProperties LoadServerProperties()
-        {
-            ServerProperties properties = new ServerProperties();
-
-            properties.ManufacturerName = "OPC Foundation";
-            properties.ProductName = "OPC UA SDK Samples";
-            properties.ProductUri = "http://opcfoundation.org/UA/Samples/v1.0";
-            properties.SoftwareVersion = Utils.GetAssemblySoftwareVersion();
-            properties.BuildNumber = Utils.GetAssemblyBuildNumber();
-            properties.BuildDate = Utils.GetAssemblyTimestamp();
-
-            return properties;
-        }
-
-        /// <summary>
-        /// Initializes the address space after the NodeManagers have started.
-        /// </summary>
-        /// <remarks>
-        /// This method can be used to create any initialization that requires access to node managers.
-        /// </remarks>
-        protected override void OnNodeManagerStarted(IServerInternal server)
-        {
-            Debug.WriteLine("The NodeManagers have started.");
-
-            // allow base class processing to happen first.
-            base.OnNodeManagerStarted(server);
-        }
-        #endregion
-    }
-
-
-
-    public enum ExitCode : int
-    {
-        Ok = 0,
-        ErrorServerNotStarted = 0x80,
-        ErrorServerRunning = 0x81,
-        ErrorServerException = 0x82,
-        ErrorInvalidCommandLine = 0x100
-    };
 
     public class Server
     {
@@ -244,4 +137,111 @@ namespace vc2opcua
             }
         }
     }
+
+    public enum ExitCode : int
+    {
+        Ok = 0,
+        ErrorServerNotStarted = 0x80,
+        ErrorServerRunning = 0x81,
+        ErrorServerException = 0x82,
+        ErrorInvalidCommandLine = 0x100
+    };
+
+    /// <summary>
+    /// A class which implements an instance of a UA server.
+    /// </summary>
+    public partial class OpcUaServer : StandardServer
+    {
+
+        #region Overridden Methods
+        /// <summary>
+        /// Initializes the server before it starts up.
+        /// </summary>
+        /// <remarks>
+        /// This method is called before any startup processing occurs. The sub-class may update the 
+        /// configuration object or do any other application specific startup tasks.
+        /// </remarks>
+        protected override void OnServerStarting(ApplicationConfiguration configuration)
+        {
+            Debug.WriteLine("The server is starting.");
+
+            base.OnServerStarting(configuration);
+        }
+
+        /// <summary>
+        /// Cleans up before the server shuts down.
+        /// </summary>
+        /// <remarks>
+        /// This method is called before any shutdown processing occurs.
+        /// </remarks>
+        protected override void OnServerStopping()
+        {
+            Debug.WriteLine("The Server is stopping.");
+
+            base.OnServerStopping();
+        }
+
+        /// <summary>
+        /// Creates the node managers for the server.
+        /// </summary>
+        /// <remarks>
+        /// This method allows the sub-class create any additional node managers which it uses. The SDK
+        /// always creates a CoreNodeManager which handles the built-in nodes defined by the specification.
+        /// Any additional NodeManagers are expected to handle application specific nodes.
+        /// 
+        /// Applications with small address spaces do not need to create their own NodeManagers and can add any
+        /// application specific nodes to the CoreNodeManager. Applications should use custom NodeManagers when
+        /// the structure of the address space is stored in another system or when the address space is too large
+        /// to keep in memory.
+        /// </remarks>
+        protected override MasterNodeManager CreateMasterNodeManager(IServerInternal server, ApplicationConfiguration configuration)
+        {
+            Debug.WriteLine("Creating the Node Managers.");
+
+            List<INodeManager> nodeManagers = new List<INodeManager>();
+
+            // create the custom node managers.
+            nodeManagers.Add(new VcManager(server, configuration));
+
+            // create master node manager.
+            return new MasterNodeManager(server, configuration, null, nodeManagers.ToArray());
+        }
+
+
+        /// <summary>
+        /// Loads the non-configurable properties for the application.
+        /// </summary>
+        /// <remarks>
+        /// These properties are exposed by the server but cannot be changed by administrators.
+        /// </remarks>
+        protected override ServerProperties LoadServerProperties()
+        {
+            ServerProperties properties = new ServerProperties();
+
+            properties.ManufacturerName = "OPC Foundation";
+            properties.ProductName = "OPC UA SDK Samples";
+            properties.ProductUri = "http://opcfoundation.org/UA/Samples/v1.0";
+            properties.SoftwareVersion = Utils.GetAssemblySoftwareVersion();
+            properties.BuildNumber = Utils.GetAssemblyBuildNumber();
+            properties.BuildDate = Utils.GetAssemblyTimestamp();
+
+            return properties;
+        }
+
+        /// <summary>
+        /// Initializes the address space after the NodeManagers have started.
+        /// </summary>
+        /// <remarks>
+        /// This method can be used to create any initialization that requires access to node managers.
+        /// </remarks>
+        protected override void OnNodeManagerStarted(IServerInternal server)
+        {
+            Debug.WriteLine("The NodeManagers have started.");
+
+            // allow base class processing to happen first.
+            base.OnNodeManagerStarted(server);
+        }
+        #endregion
+    }
+
 }
