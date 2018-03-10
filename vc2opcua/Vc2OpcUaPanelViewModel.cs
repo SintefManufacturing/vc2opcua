@@ -66,17 +66,30 @@ namespace vc2opcua
         {
             _vcutils.VcWriteWarningMsg("Component added: " + e.Component.Name);
             Components.Add(e.Component);
+
+            // Restart server
+            if (!CanStart)
+            {
+                Stop();
+                Start();
+            }
         }
 
         private void World_ComponentRemoving(object sender, ComponentRemovingEventArgs e)
         {
             _vcutils.VcWriteWarningMsg("Component removed: " + e.Component.Name);
             Components.Remove(e.Component);
+
+            if (!CanStart)
+            {
+                Stop();
+                Start();
+            }
         }
 
         public void Start()
         {
-            _vcutils.VcWriteWarningMsg("Start Button Clicked");
+            _vcutils.VcWriteWarningMsg("OPCUA server started");
 
             // Start Server
             _server = new Server(false, 0);
@@ -89,7 +102,7 @@ namespace vc2opcua
 
         public void Stop()
         {
-            _vcutils.VcWriteWarningMsg("Stop Button Clicked");
+            _vcutils.VcWriteWarningMsg("OPCUA server stopped");
             _server.Stop();
             _serverthread.Abort();
 
