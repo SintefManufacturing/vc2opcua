@@ -77,21 +77,6 @@ namespace vc2opcua
     }
     #endregion
 
-    #region Variable Identifiers
-    /// <summary>
-    /// A class that declares constants for all Variables in the Model Design.
-    /// </summary>
-    /// <exclude />
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class Variables
-    {
-        /// <summary>
-        /// The identifier for the ComponentType_Signal Variable.
-        /// </summary>
-        public const uint ComponentType_Signal = 15005;
-    }
-    #endregion
-
     #region Object Node Identifiers
     /// <summary>
     /// A class that declares constants for all Objects in the Model Design.
@@ -132,21 +117,6 @@ namespace vc2opcua
     }
     #endregion
 
-    #region Variable Node Identifiers
-    /// <summary>
-    /// A class that declares constants for all Variables in the Model Design.
-    /// </summary>
-    /// <exclude />
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class VariableIds
-    {
-        /// <summary>
-        /// The identifier for the ComponentType_Signal Variable.
-        /// </summary>
-        public static readonly ExpandedNodeId ComponentType_Signal = new ExpandedNodeId(vc2opcua.Variables.ComponentType_Signal, vc2opcua.Namespaces.vc2opcua);
-    }
-    #endregion
-
     #region BrowseName Declarations
     /// <summary>
     /// Declares all of the BrowseNames used in the Model Design.
@@ -163,11 +133,6 @@ namespace vc2opcua
         /// The BrowseName for the ComponentType component.
         /// </summary>
         public const string ComponentType = "ComponentType";
-
-        /// <summary>
-        /// The BrowseName for the Signal component.
-        /// </summary>
-        public const string Signal = "Signal";
 
         /// <summary>
         /// The BrowseName for the VcApplication component.

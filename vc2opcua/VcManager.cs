@@ -35,15 +35,13 @@ namespace vc2opcua
 
             m_typeNamespaceIndex = Server.NamespaceUris.GetIndexOrAppend(namespaceUris[0]);
             m_namespaceIndex = Server.NamespaceUris.GetIndexOrAppend(namespaceUris[1]);
-
-            m_lastUsedId = 0;
         }
         #endregion
 
         #region Overrides
 
         /// <summary>
-        /// Loads a node set from a file or resource and addes them to the set of predefined nodes.
+        /// Loads a node set from a file or resource and adds them to the set of predefined nodes.
         /// </summary>
         protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context)
         {
@@ -54,82 +52,91 @@ namespace vc2opcua
 
         public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences)
         {
-            ReadOnlyCollection<ISimComponent> components = _vcutils.GetComponents();
-
             lock (Lock)
             {
                 base.CreateAddressSpace(externalReferences);
-
-                foreach (ISimComponent component in components)
-                {
-                    CreateNode(SystemContext, component.Name);
-                }
-
+                CreateComponentNodes();
             }
         }
         #endregion
 
         #region Methods
 
-        private void CreateNode(SystemContext context, string nodename)
+        /// <summary>
+        /// Creates OPCUA nodes based on current components active in Visual Components.
+        /// </summary>
+        private void CreateComponentNodes()
         {
-            ComponentState component = new ComponentState(null);
+            string namespaceUri = Namespaces.vc2opcua;
+            SystemContext context = SystemContext;
+            ReadOnlyCollection<ISimComponent> components = _vcutils.GetComponents();
 
-            string namespaceuri = "vc2opcua:namespace";
-
-            NodeId nodeid = NodeId.Create(nodename, namespaceuri, context.NamespaceUris);
-
-            component.Create(
-                context,
-                nodeid,
-                new QualifiedName(nodename, m_namespaceIndex),
-                null,
-                true);
-
-            NodeState folder = (NodeState)FindPredefinedNode(
+            NodeState baseFolder = (NodeState)FindPredefinedNode(
                 ExpandedNodeId.ToNodeId(ObjectIds.VisualComponents_Components, Server.NamespaceUris),
                 typeof(NodeState));
 
-            folder.AddReference(ReferenceTypeIds.Organizes, false, component.NodeId);
-            component.AddReference(ReferenceTypeIds.Organizes, true, folder.NodeId);
-
-            AddPredefinedNode(context, component);
-
-            Debug.WriteLine(SystemContext.StringTable);
-        }
-
-        public ISimComponent GetComponent(Collection<ISimComponent> components, string name)
-        {
             foreach (ISimComponent component in components)
             {
-                if (component.Name == name)
+                VcComponent vcComp = new VcComponent(component);
+                var vcSignals = vcComp.GetStringSignals();
+
+                ComponentState componentNode = CreateNode(context, baseFolder, namespaceUri, component.Name);
+
+                foreach (IBehavior signal in vcSignals)
                 {
-                    return component;
+                    PropertyState<string> uaSignal = CreateNode(context, componentNode, namespaceUri, signal.Name);
+                    componentNode.AddChild(uaSignal);
                 }
+                AddPredefinedNode(context, componentNode);
             }
-
-            // If we go through all the components and we do not find any match
-            string message = String.Format("Component {0} not found", name);
-            _vcutils.VcWriteWarningMsg(message);
-
-            return null;
         }
 
-        public void PrintComponents(Collection<ISimComponent> components)
+        /// <summary>
+        /// Creates node for Component in Visual Components.
+        /// </summary>
+        private ComponentState CreateNode(SystemContext context, NodeState baseNode, string namespaceUri, string nodeName)
         {
-            Debug.WriteLine("Components: ");
-            foreach (ISimComponent component in components)
-            {
-                Debug.WriteLine("  " + component.Name);
-            }
+            ComponentState uaComponent = new ComponentState(null);
+            NodeId nodeId = NodeId.Create(nodeName, namespaceUri, context.NamespaceUris);
+
+            uaComponent.Create(
+                context,
+                nodeId,
+                new QualifiedName(nodeName, m_namespaceIndex),
+                null,
+                true);
+
+            baseNode.AddReference(ReferenceTypeIds.Organizes, false, uaComponent.NodeId);
+            uaComponent.AddReference(ReferenceTypeIds.Organizes, true, baseNode.NodeId);
+
+            return uaComponent;
         }
 
+        /// <summary>
+        /// Creates node for Signal associated to Component in Visual Components.
+        /// </summary>
+        private PropertyState<string> CreateNode(SystemContext context, ComponentState baseNode, string namespaceUri, string nodeName)
+        {
+            PropertyState<string> uaSignal = new PropertyState<string>(null);
+            NodeId nodeId = NodeId.Create(nodeName, namespaceUri, context.NamespaceUris);
+
+            uaSignal.Create(
+                context,
+                nodeId,
+                new QualifiedName(nodeName, m_namespaceIndex),
+                null,
+                true);
+
+            baseNode.AddReference(ReferenceTypeIds.Organizes, false, uaSignal.NodeId);
+            uaSignal.AddReference(ReferenceTypeIds.Organizes, true, baseNode.NodeId);
+
+            return uaSignal;
+        }
         #endregion
 
         #region Private Fields
         private ushort m_namespaceIndex;
         private ushort m_typeNamespaceIndex;
-        private long m_lastUsedId;
         #endregion
     }
 }

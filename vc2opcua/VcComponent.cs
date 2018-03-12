@@ -27,6 +27,22 @@ namespace vc2opcua
 
         #region Methods
 
+        public Collection<IBehavior> GetStringSignals()
+        {
+            Collection<IBehavior> stringSignals = new Collection<IBehavior>();
+
+            var behaviors = component.Behaviors;
+
+            foreach (IBehavior behavior in behaviors)
+            {
+                if (behavior.Type == BehaviorType.StringSignal)
+                {
+                    stringSignals.Add(behavior);
+                }
+            }
+            return stringSignals;
+        }
+
         public IProperty GetProperty(string name)
         {
             foreach (IProperty property in component.Properties)
@@ -44,7 +60,13 @@ namespace vc2opcua
             return null;
         }
 
-        public void SetPropertyValueDouble(IProperty property, double value)
+        public void SetPropertyValue(IProperty property, double value)
+        {
+            property.Value = value;
+
+            component.Rebuild();
+        }
+        public void SetPropertyValue(IProperty property, string value)
         {
             property.Value = value;
 

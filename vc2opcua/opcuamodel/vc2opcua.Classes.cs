@@ -91,104 +91,18 @@ namespace vc2opcua
         #region Initialization String
         private const string InitializationString =
            "AQAAABIAAAB2YzJvcGN1YTpuYW1lc3BhY2X/////hGCAAAEAAAABABUAAABDb21wb25lbnRUeXBlSW5z" +
-           "dGFuY2UBAZw6AQGcOgH/////AQAAABVgiQoCAAAAAQAGAAAAU2lnbmFsAQGdOgAuAESdOgAAAAH/////" +
-           "AQH/////AAAAAA==";
+           "dGFuY2UBAZw6AQGcOgH/////AAAAAA==";
         #endregion
         #endif
         #endregion
 
         #region Public Properties
-        /// <summary>
-        /// A description for the Signal Property.
-        /// </summary>
-        public PropertyState<bool> Signal
-        {
-            get
-            {
-                return m_signal;
-            }
-
-            set
-            {
-                if (!Object.ReferenceEquals(m_signal, value))
-                {
-                    ChangeMasks |= NodeStateChangeMasks.Children;
-                }
-
-                m_signal = value;
-            }
-        }
         #endregion
 
         #region Overridden Methods
-        /// <summary>
-        /// Populates a list with the children that belong to the node.
-        /// </summary>
-        /// <param name="context">The context for the system being accessed.</param>
-        /// <param name="children">The list of children to populate.</param>
-        public override void GetChildren(
-            ISystemContext context,
-            IList<BaseInstanceState> children)
-        {
-            if (m_signal != null)
-            {
-                children.Add(m_signal);
-            }
-
-            base.GetChildren(context, children);
-        }
-
-        /// <summary>
-        /// Finds the child with the specified browse name.
-        /// </summary>
-        protected override BaseInstanceState FindChild(
-            ISystemContext context,
-            QualifiedName browseName,
-            bool createOrReplace,
-            BaseInstanceState replacement)
-        {
-            if (QualifiedName.IsNull(browseName))
-            {
-                return null;
-            }
-
-            BaseInstanceState instance = null;
-
-            switch (browseName.Name)
-            {
-                case vc2opcua.BrowseNames.Signal:
-                {
-                    if (createOrReplace)
-                    {
-                        if (Signal == null)
-                        {
-                            if (replacement == null)
-                            {
-                                Signal = new PropertyState<bool>(this);
-                            }
-                            else
-                            {
-                                Signal = (PropertyState<bool>)replacement;
-                            }
-                        }
-                    }
-
-                    instance = Signal;
-                    break;
-                }
-            }
-
-            if (instance != null)
-            {
-                return instance;
-            }
-
-            return base.FindChild(context, browseName, createOrReplace, replacement);
-        }
         #endregion
 
         #region Private Fields
-        private PropertyState<bool> m_signal;
         #endregion
     }
     #endif
