@@ -52,12 +52,33 @@ namespace vc2opcua
             */
         }
 
+        /// <summary>
+        /// Returns all components in current VC simulation
+        /// </summary>
         public ReadOnlyCollection<ISimComponent>  GetComponents()
         {
             _application = IoC.Get<IApplication>();
             ReadOnlyCollection<ISimComponent> components = _application.World.Components;
 
             return components;
+        }
+
+        /// <summary>
+        /// Returns a specific component if present on current VC simulation
+        /// </summary>
+        public ISimComponent GetComponent(string componentName)
+        {
+            var components = GetComponents();
+
+            foreach (var component in components)
+            {
+                if (component.Name == componentName)
+                {
+                    return component;
+                }
+            }
+
+            return null;
         }
 
         public void VcWriteWarningMsg(string message)

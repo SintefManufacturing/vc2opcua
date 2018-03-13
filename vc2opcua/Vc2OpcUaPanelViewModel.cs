@@ -89,8 +89,6 @@ namespace vc2opcua
 
         public void Start()
         {
-            _vcutils.VcWriteWarningMsg("OPCUA server started");
-
             // Start Server
             _server = new Server(false, 0);
             _serverthread = new Thread(new ThreadStart(_server.Run));
@@ -98,16 +96,19 @@ namespace vc2opcua
             _serverthread.Start();
             CanStart = false;
             CanStop = true;
+
+            _vcutils.VcWriteWarningMsg("OPCUA server started");
         }
 
         public void Stop()
         {
-            _vcutils.VcWriteWarningMsg("OPCUA server stopped");
             _server.Stop();
             _serverthread.Abort();
 
             CanStart = true;
             CanStop = false;
+
+            _vcutils.VcWriteWarningMsg("OPCUA server stopped");
         }
 
         private bool _canstart = true;
@@ -131,27 +132,6 @@ namespace vc2opcua
                 NotifyOfPropertyChange(() => CanStop);
             }
         }
-
-        /*
-        public void Move()
-        {
-            // Automatically related to element in *View.xaml having x:Name = this method's name
-            try
-            {
-                VcComponent component = new VcComponent(_vcmanager.GetComponent(Text1));
-                IProperty property = component.GetProperty(Text2);
-
-                component.SetPropertyValueDouble(property, double.Parse(Text3));
-
-                _renderService.RequestRender();
-
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine("Exception: {0}", e);
-            }
-        }*/
-
         #endregion
 
     }

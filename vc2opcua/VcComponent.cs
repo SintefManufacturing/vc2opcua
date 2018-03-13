@@ -27,17 +27,17 @@ namespace vc2opcua
 
         #region Methods
 
-        public Collection<IBehavior> GetStringSignals()
+        public Collection<IStringSignal> GetStringSignals()
         {
-            Collection<IBehavior> stringSignals = new Collection<IBehavior>();
+            Collection<IStringSignal> stringSignals = new Collection<IStringSignal>();
 
             var behaviors = component.Behaviors;
 
-            foreach (IBehavior behavior in behaviors)
+            foreach (IBehavior signal in behaviors)
             {
-                if (behavior.Type == BehaviorType.StringSignal)
+                if (signal.Type == BehaviorType.StringSignal)
                 {
-                    stringSignals.Add(behavior);
+                    stringSignals.Add((IStringSignal)signal);
                 }
             }
             return stringSignals;
@@ -81,7 +81,6 @@ namespace vc2opcua
                 Debug.WriteLine("  " + property.Name);
             }
         }
-
         #endregion
     }
 }

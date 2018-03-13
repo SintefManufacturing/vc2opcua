@@ -82,12 +82,64 @@ namespace vc2opcua
 
                 ComponentState componentNode = CreateNode(context, baseFolder, namespaceUri, component.Name);
 
-                foreach (IBehavior signal in vcSignals)
+                foreach (IStringSignal vcSignal in vcSignals)
                 {
-                    PropertyState<string> uaSignal = CreateNode(context, componentNode, namespaceUri, signal.Name);
+                    PropertyState<string> uaSignal = CreateNode(context, componentNode, namespaceUri, vcSignal.Name);
                     componentNode.AddChild(uaSignal);
+
+                    SetSignals(uaSignal, vcSignal);
                 }
                 AddPredefinedNode(context, componentNode);
+            }
+        }
+
+        /// <summary>
+        /// Set signal values and mutually subscribe to signal changes
+        /// </summary>
+        private void SetSignals(PropertyState<string> uaSignal, IStringSignal vcSignal)
+        {
+            // Start setting value of VC signal to OPCUA signal
+            uaSignal.Value = (string)vcSignal.Value;
+
+            // Subscribe to signal triggered events
+            vcSignal.SignalTrigger += vc_SignalTriggered;
+            uaSignal.StateChanged += ua_SignalTriggered;
+        }
+
+        /// <summary>
+        /// Sets value of OPCUA node signal to corresponding VC signal
+        /// </summary>
+        private void ua_SignalTriggered(ISystemContext context, NodeState node, NodeStateChangeMasks changes)
+        {
+            PropertyState<string> uaSignal = (PropertyState<string>)node;
+
+            ISimComponent component = _vcutils.GetComponent(uaSignal.Parent.BrowseName.Name);
+
+            if (component != null)
+            {
+                IStringSignal vcSignal = (IStringSignal)component.FindBehavior(uaSignal.BrowseName.Name);
+
+                vcSignal.Value = uaSignal.Value;
+            }
+        }
+
+        /// <summary>
+        /// Sets value of VC signal to OPCUA node
+        /// </summary>
+        private void vc_SignalTriggered(object sender, SignalTriggerEventArgs e)
+        {
+            ISignal vcSignal = e.Signal;
+
+            NodeId nodeId = NodeId.Create(e.Signal.Name, Namespaces.vc2opcua, Server.NamespaceUris);
+            PropertyState<string> uaSignal = (PropertyState<string>)FindPredefinedNode(nodeId, typeof(PropertyState<string>));
+
+            if (uaSignal != null)
+            {
+                uaSignal.Value = (string)vcSignal.Value;
+            }
+            else
+            {
+                e.Signal.SignalTrigger -= vc_SignalTriggered;
             }
         }
 
