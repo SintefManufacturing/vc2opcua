@@ -19,6 +19,27 @@
     <uax:SuperTypeId>
       <uax:Identifier>i=58</uax:Identifier>
     </uax:SuperTypeId>
+    <Signals>
+      <uax:NodeClass>Object_1</uax:NodeClass>
+      <uax:NodeId>
+        <uax:Identifier>ns=1;i=15005</uax:Identifier>
+      </uax:NodeId>
+      <uax:BrowseName>
+        <uax:NamespaceIndex>1</uax:NamespaceIndex>
+        <uax:Name>Signals</uax:Name>
+      </uax:BrowseName>
+      <uax:ReferenceTypeId>
+        <uax:Identifier>i=47</uax:Identifier>
+      </uax:ReferenceTypeId>
+      <uax:TypeDefinitionId>
+        <uax:Identifier>i=61</uax:Identifier>
+      </uax:TypeDefinitionId>
+      <uax:ModellingRuleId>
+        <uax:Identifier>i=78</uax:Identifier>
+      </uax:ModellingRuleId>
+      <uax:NumericId>15005</uax:NumericId>
+      <uax:EventNotifier>1</uax:EventNotifier>
+    </Signals>
   </ComponentType>
   <VisualComponents xmlns="vc2opcua:namespace">
     <uax:NodeClass>Object_1</uax:NodeClass>

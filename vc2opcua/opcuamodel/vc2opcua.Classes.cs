@@ -91,18 +91,104 @@ namespace vc2opcua
         #region Initialization String
         private const string InitializationString =
            "AQAAABIAAAB2YzJvcGN1YTpuYW1lc3BhY2X/////hGCAAAEAAAABABUAAABDb21wb25lbnRUeXBlSW5z" +
-           "dGFuY2UBAZw6AQGcOgH/////AAAAAA==";
+           "dGFuY2UBAZw6AQGcOgH/////AQAAAIRggAoBAAAAAQAHAAAAU2lnbmFscwEBnToALwA9nToAAAH/////" +
+           "AAAAAA==";
         #endregion
         #endif
         #endregion
 
         #region Public Properties
+        /// <summary>
+        /// A description for the Signals Object.
+        /// </summary>
+        public FolderState Signals
+        {
+            get
+            {
+                return m_signals;
+            }
+
+            set
+            {
+                if (!Object.ReferenceEquals(m_signals, value))
+                {
+                    ChangeMasks |= NodeStateChangeMasks.Children;
+                }
+
+                m_signals = value;
+            }
+        }
         #endregion
 
         #region Overridden Methods
+        /// <summary>
+        /// Populates a list with the children that belong to the node.
+        /// </summary>
+        /// <param name="context">The context for the system being accessed.</param>
+        /// <param name="children">The list of children to populate.</param>
+        public override void GetChildren(
+            ISystemContext context,
+            IList<BaseInstanceState> children)
+        {
+            if (m_signals != null)
+            {
+                children.Add(m_signals);
+            }
+
+            base.GetChildren(context, children);
+        }
+
+        /// <summary>
+        /// Finds the child with the specified browse name.
+        /// </summary>
+        protected override BaseInstanceState FindChild(
+            ISystemContext context,
+            QualifiedName browseName,
+            bool createOrReplace,
+            BaseInstanceState replacement)
+        {
+            if (QualifiedName.IsNull(browseName))
+            {
+                return null;
+            }
+
+            BaseInstanceState instance = null;
+
+            switch (browseName.Name)
+            {
+                case vc2opcua.BrowseNames.Signals:
+                {
+                    if (createOrReplace)
+                    {
+                        if (Signals == null)
+                        {
+                            if (replacement == null)
+                            {
+                                Signals = new FolderState(this);
+                            }
+                            else
+                            {
+                                Signals = (FolderState)replacement;
+                            }
+                        }
+                    }
+
+                    instance = Signals;
+                    break;
+                }
+            }
+
+            if (instance != null)
+            {
+                return instance;
+            }
+
+            return base.FindChild(context, browseName, createOrReplace, replacement);
+        }
         #endregion
 
         #region Private Fields
+        private FolderState m_signals;
         #endregion
     }
     #endif

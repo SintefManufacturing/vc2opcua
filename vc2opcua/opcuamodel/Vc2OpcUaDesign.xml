@@ -17,9 +17,9 @@
   <opc:ObjectType SymbolicName="ComponentType" BaseType="ua:BaseObjectType" SupportsEvents="true">
     <opc:Description>VC component.</opc:Description>
     <opc:Children>
-      <opc:Property SymbolicName="Signal" DataType="ua:Boolean">
-        <opc:BrowseName>Signal</opc:BrowseName>
-      </opc:Property>
+      <opc:Object SymbolicName="Signals" TypeDefinition="ua:FolderType" SupportsEvents="true">
+        <opc:BrowseName>Signals</opc:BrowseName>
+      </opc:Object>
     </opc:Children>
   </opc:ObjectType>
   

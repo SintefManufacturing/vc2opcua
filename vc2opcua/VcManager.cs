@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 using Opc.Ua;
 using Opc.Ua.Sample;
+using Opc.Ua.Server;
 using VisualComponents.Create3D;
 
 namespace vc2opcua
@@ -80,12 +81,20 @@ namespace vc2opcua
                 VcComponent vcComp = new VcComponent(component);
                 var vcSignals = vcComp.GetStringSignals();
 
-                ComponentState componentNode = CreateNode(context, baseFolder, namespaceUri, component.Name);
+                ComponentState componentNode = CreateComponentNode(context, baseFolder, namespaceUri, component.Name);
+
+                componentNode.EventNotifier = EventNotifiers.SubscribeToEvents;
 
                 foreach (IStringSignal vcSignal in vcSignals)
                 {
-                    PropertyState<string> uaSignal = CreateNode(context, componentNode, namespaceUri, vcSignal.Name);
-                    componentNode.AddChild(uaSignal);
+                    BaseDataVariableState<string> uaSignal = CreateVariableNode(context, componentNode.Signals, namespaceUri, vcSignal.Name);
+                    
+                    uaSignal.SetAreEventsMonitored(context, true, false);
+
+                    _vcutils.VcWriteWarningMsg(uaSignal.BrowseName.Name + ":EventsAreMonitored = " + uaSignal.AreEventsMonitored.ToString());
+
+                    AddRootNotifier(uaSignal);
+                    componentNode.Signals.AddChild(uaSignal);
 
                     SetSignals(uaSignal, vcSignal);
                 }
@@ -93,10 +102,11 @@ namespace vc2opcua
             }
         }
 
+        
         /// <summary>
         /// Set signal values and mutually subscribe to signal changes
         /// </summary>
-        private void SetSignals(PropertyState<string> uaSignal, IStringSignal vcSignal)
+        private void SetSignals(BaseDataVariableState<string> uaSignal, IStringSignal vcSignal)
         {
             // Start setting value of VC signal to OPCUA signal
             uaSignal.Value = (string)vcSignal.Value;
@@ -111,13 +121,17 @@ namespace vc2opcua
         /// </summary>
         private void ua_SignalTriggered(ISystemContext context, NodeState node, NodeStateChangeMasks changes)
         {
-            PropertyState<string> uaSignal = (PropertyState<string>)node;
+            BaseDataVariableState<string> uaSignal = (BaseDataVariableState<string>)node;
 
-            ISimComponent component = _vcutils.GetComponent(uaSignal.Parent.BrowseName.Name);
+            FolderState folder = (FolderState)uaSignal.Parent;
 
-            if (component != null)
+            ComponentState uaComponent = (ComponentState)folder.Parent;
+
+            ISimComponent vcComponent = _vcutils.GetComponent(uaComponent.BrowseName.Name);
+
+            if (vcComponent != null)
             {
-                IStringSignal vcSignal = (IStringSignal)component.FindBehavior(uaSignal.BrowseName.Name);
+                IStringSignal vcSignal = (IStringSignal)vcComponent.FindBehavior(uaSignal.BrowseName.Name);
 
                 vcSignal.Value = uaSignal.Value;
             }
@@ -131,11 +145,13 @@ namespace vc2opcua
             ISignal vcSignal = e.Signal;
 
             NodeId nodeId = NodeId.Create(e.Signal.Name, Namespaces.vc2opcua, Server.NamespaceUris);
-            PropertyState<string> uaSignal = (PropertyState<string>)FindPredefinedNode(nodeId, typeof(PropertyState<string>));
+            BaseDataVariableState<string> uaSignal = (BaseDataVariableState<string>)FindPredefinedNode(nodeId, typeof(BaseDataVariableState<string>));
 
             if (uaSignal != null)
             {
                 uaSignal.Value = (string)vcSignal.Value;
+                uaSignal.Timestamp = DateTime.UtcNow;
+                // Raise data change event
             }
             else
             {
@@ -146,30 +162,35 @@ namespace vc2opcua
         /// <summary>
         /// Creates node for Component in Visual Components.
         /// </summary>
-        private ComponentState CreateNode(SystemContext context, NodeState baseNode, string namespaceUri, string nodeName)
+        private ComponentState CreateComponentNode(SystemContext context, NodeState baseFolder, string namespaceUri, string nodeName)
         {
             ComponentState uaComponent = new ComponentState(null);
-            NodeId nodeId = NodeId.Create(nodeName, namespaceUri, context.NamespaceUris);
+            NodeId componentNodeId = NodeId.Create(nodeName, namespaceUri, context.NamespaceUris);
+            NodeId signalsNodeId = NodeId.Create("Signals_" + nodeName, namespaceUri, context.NamespaceUris);
 
             uaComponent.Create(
                 context,
-                nodeId,
+                componentNodeId,
                 new QualifiedName(nodeName, m_namespaceIndex),
                 null,
                 true);
 
-            baseNode.AddReference(ReferenceTypeIds.Organizes, false, uaComponent.NodeId);
-            uaComponent.AddReference(ReferenceTypeIds.Organizes, true, baseNode.NodeId);
+            uaComponent.Signals.NodeId = signalsNodeId;
+
+            uaComponent.AddChild(uaComponent.Signals);
+
+            baseFolder.AddReference(ReferenceTypeIds.Organizes, false, uaComponent.NodeId);
+            uaComponent.AddReference(ReferenceTypeIds.Organizes, true, baseFolder.NodeId);
 
             return uaComponent;
         }
-
+        
         /// <summary>
         /// Creates node for Signal associated to Component in Visual Components.
         /// </summary>
-        private PropertyState<string> CreateNode(SystemContext context, ComponentState baseNode, string namespaceUri, string nodeName)
+        private BaseDataVariableState<string> CreateVariableNode(SystemContext context, FolderState baseFolder, string namespaceUri, string nodeName)
         {
-            PropertyState<string> uaSignal = new PropertyState<string>(null);
+            BaseDataVariableState<string> uaSignal = new BaseDataVariableState<string>(baseFolder);
             NodeId nodeId = NodeId.Create(nodeName, namespaceUri, context.NamespaceUris);
 
             uaSignal.Create(
@@ -179,11 +200,12 @@ namespace vc2opcua
                 null,
                 true);
 
-            baseNode.AddReference(ReferenceTypeIds.Organizes, false, uaSignal.NodeId);
-            uaSignal.AddReference(ReferenceTypeIds.Organizes, true, baseNode.NodeId);
+            baseFolder.AddReference(ReferenceTypeIds.Organizes, false, uaSignal.NodeId);
+            uaSignal.AddReference(ReferenceTypeIds.Organizes, true, baseFolder.NodeId);
 
             return uaSignal;
         }
+
         #endregion
 
         #region Private Fields
