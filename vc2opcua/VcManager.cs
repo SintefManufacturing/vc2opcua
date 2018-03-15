@@ -88,14 +88,8 @@ namespace vc2opcua
                 foreach (IStringSignal vcSignal in vcSignals)
                 {
                     BaseDataVariableState<string> uaSignal = CreateVariableNode(context, componentNode.Signals, namespaceUri, vcSignal.Name);
-                    
-                    uaSignal.SetAreEventsMonitored(context, true, false);
 
-                    _vcutils.VcWriteWarningMsg(uaSignal.BrowseName.Name + ":EventsAreMonitored = " + uaSignal.AreEventsMonitored.ToString());
-
-                    AddRootNotifier(uaSignal);
                     componentNode.Signals.AddChild(uaSignal);
-
                     SetSignals(uaSignal, vcSignal);
                 }
                 AddPredefinedNode(context, componentNode);
@@ -121,6 +115,7 @@ namespace vc2opcua
         /// </summary>
         private void ua_SignalTriggered(ISystemContext context, NodeState node, NodeStateChangeMasks changes)
         {
+            // TODO: relate signals and component names in DIctionary 
             BaseDataVariableState<string> uaSignal = (BaseDataVariableState<string>)node;
 
             FolderState folder = (FolderState)uaSignal.Parent;
@@ -133,7 +128,8 @@ namespace vc2opcua
             {
                 IStringSignal vcSignal = (IStringSignal)vcComponent.FindBehavior(uaSignal.BrowseName.Name);
 
-                vcSignal.Value = uaSignal.Value;
+                if ((string)vcSignal.Value != uaSignal.Value)
+                    vcSignal.Value = uaSignal.Value;
             }
         }
 
@@ -142,16 +138,17 @@ namespace vc2opcua
         /// </summary>
         private void vc_SignalTriggered(object sender, SignalTriggerEventArgs e)
         {
-            ISignal vcSignal = e.Signal;
-
             NodeId nodeId = NodeId.Create(e.Signal.Name, Namespaces.vc2opcua, Server.NamespaceUris);
             BaseDataVariableState<string> uaSignal = (BaseDataVariableState<string>)FindPredefinedNode(nodeId, typeof(BaseDataVariableState<string>));
 
             if (uaSignal != null)
             {
-                uaSignal.Value = (string)vcSignal.Value;
-                uaSignal.Timestamp = DateTime.UtcNow;
-                // Raise data change event
+                if (uaSignal.Value != (string)e.Signal.Value)
+                {
+                    uaSignal.Value = (string)e.Signal.Value;
+                    uaSignal.Timestamp = DateTime.UtcNow;
+                    uaSignal.ClearChangeMasks(SystemContext, true);
+                }
             }
             else
             {
