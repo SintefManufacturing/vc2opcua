@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vc2opcua", "vc2opcua\vc2opcua.csproj", "{76A4739C-6D15-406D-B28B-9DDF14D535DF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vc2opcua", "vc2opcua.csproj", "{76A4739C-6D15-406D-B28B-9DDF14D535DF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Opc.Ua.Core", "..\UA-.NETStandard\Stack\Opc.Ua.Core\Opc.Ua.Core.csproj", "{780BAB0E-993D-4841-AD31-D4556354F1CD}"
 EndProject

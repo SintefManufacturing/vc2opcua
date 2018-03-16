@@ -88,7 +88,7 @@ namespace vc2opcua
                 VcComponent vcComp = new VcComponent(vcComponent);
                 var vcSignals = vcComp.GetStringSignals();
 
-                ComponentState componentNode = CreateComponentNode(context, baseFolder, namespaceUri, vcComponent.Name);
+                ComponentState componentNode = CreateComponentNode(context, baseFolder, namespaceUri, vcComponent.Name); // This goes to bridge
 
                 componentNode.EventNotifier = EventNotifiers.SubscribeToEvents;
 

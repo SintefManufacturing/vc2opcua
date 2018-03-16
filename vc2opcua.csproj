@@ -116,15 +116,15 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\UA-.NETStandard\SampleApplications\SDK\Opc.Ua.Configuration\Opc.Ua.Configuration.csproj">
+    <ProjectReference Include="..\UA-.NETStandard\SampleApplications\SDK\Opc.Ua.Configuration\Opc.Ua.Configuration.csproj">
       <Project>{13c7e2d7-8e79-4960-a5ee-837e9e83988d}</Project>
       <Name>Opc.Ua.Configuration</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\UA-.NETStandard\SampleApplications\SDK\Opc.Ua.Server\Opc.Ua.Server.csproj">
+    <ProjectReference Include="..\UA-.NETStandard\SampleApplications\SDK\Opc.Ua.Server\Opc.Ua.Server.csproj">
       <Project>{91b5b9a7-85f7-41c1-8a9c-ce86342ec514}</Project>
       <Name>Opc.Ua.Server</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\UA-.NETStandard\Stack\Opc.Ua.Core\Opc.Ua.Core.csproj">
+    <ProjectReference Include="..\UA-.NETStandard\Stack\Opc.Ua.Core\Opc.Ua.Core.csproj">
       <Project>{780bab0e-993d-4841-ad31-d4556354f1cd}</Project>
       <Name>Opc.Ua.Core</Name>
     </ProjectReference>
