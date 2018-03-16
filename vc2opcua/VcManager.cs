@@ -39,6 +39,13 @@ namespace vc2opcua
         }
         #endregion
 
+        #region Properties
+
+        // Dictionary that relates active signal names to their corresponding components
+        public Dictionary<string, string> ActiveSignals { get; set; } = new Dictionary<string, string>();
+
+        #endregion
+
         #region Overrides
 
         /// <summary>
@@ -70,18 +77,18 @@ namespace vc2opcua
         {
             string namespaceUri = Namespaces.vc2opcua;
             SystemContext context = SystemContext;
-            ReadOnlyCollection<ISimComponent> components = _vcutils.GetComponents();
+            ReadOnlyCollection<ISimComponent> vcComponents = _vcutils.GetComponents();
 
             NodeState baseFolder = (NodeState)FindPredefinedNode(
                 ExpandedNodeId.ToNodeId(ObjectIds.VisualComponents_Components, Server.NamespaceUris),
                 typeof(NodeState));
 
-            foreach (ISimComponent component in components)
+            foreach (ISimComponent vcComponent in vcComponents)
             {
-                VcComponent vcComp = new VcComponent(component);
+                VcComponent vcComp = new VcComponent(vcComponent);
                 var vcSignals = vcComp.GetStringSignals();
 
-                ComponentState componentNode = CreateComponentNode(context, baseFolder, namespaceUri, component.Name);
+                ComponentState componentNode = CreateComponentNode(context, baseFolder, namespaceUri, vcComponent.Name);
 
                 componentNode.EventNotifier = EventNotifiers.SubscribeToEvents;
 
@@ -90,13 +97,15 @@ namespace vc2opcua
                     BaseDataVariableState<string> uaSignal = CreateVariableNode(context, componentNode.Signals, namespaceUri, vcSignal.Name);
 
                     componentNode.Signals.AddChild(uaSignal);
+
+                    ActiveSignals.Add(vcSignal.Name, vcComponent.Name);
+
                     SetSignals(uaSignal, vcSignal);
                 }
                 AddPredefinedNode(context, componentNode);
             }
         }
 
-        
         /// <summary>
         /// Set signal values and mutually subscribe to signal changes
         /// </summary>
@@ -115,21 +124,23 @@ namespace vc2opcua
         /// </summary>
         private void ua_SignalTriggered(ISystemContext context, NodeState node, NodeStateChangeMasks changes)
         {
-            // TODO: relate signals and component names in DIctionary 
-            BaseDataVariableState<string> uaSignal = (BaseDataVariableState<string>)node;
 
-            FolderState folder = (FolderState)uaSignal.Parent;
-
-            ComponentState uaComponent = (ComponentState)folder.Parent;
-
-            ISimComponent vcComponent = _vcutils.GetComponent(uaComponent.BrowseName.Name);
-
-            if (vcComponent != null)
+            if (ActiveSignals.ContainsKey(node.BrowseName.Name))
             {
-                IStringSignal vcSignal = (IStringSignal)vcComponent.FindBehavior(uaSignal.BrowseName.Name);
+                ISimComponent vcComponent = _vcutils.GetComponent(ActiveSignals[node.BrowseName.Name]);
 
-                if ((string)vcSignal.Value != uaSignal.Value)
-                    vcSignal.Value = uaSignal.Value;
+                if (vcComponent != null)
+                {
+                    IStringSignal vcSignal = (IStringSignal)vcComponent.FindBehavior(node.BrowseName.Name);
+                    BaseDataVariableState<string> uaSignal = (BaseDataVariableState<string>)node;
+
+                    if ((string)vcSignal.Value != uaSignal.Value)
+                        vcSignal.Value = uaSignal.Value;
+                }
+            }
+            else
+            {
+                _vcutils.VcWriteWarningMsg(String.Format("Component with signal {0} not found", node.BrowseName.Name));
             }
         }
 
@@ -152,6 +163,7 @@ namespace vc2opcua
             }
             else
             {
+                // Unsubscribe to events
                 e.Signal.SignalTrigger -= vc_SignalTriggered;
             }
         }
