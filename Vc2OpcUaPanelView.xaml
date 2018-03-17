@@ -19,7 +19,7 @@
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
-        <Button x:Name="Start" Grid.Row="1" Grid.Column="1">Start</Button>
+        <Button x:Name="Start" Grid.Row="1" Grid.Column="1">Start Server</Button>
         <Button x:Name="Stop" Grid.Row="3" Grid.Column="1">Stop</Button>
     </Grid>
 </UserControl>

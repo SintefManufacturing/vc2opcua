@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 using Opc.Ua;
 using Opc.Ua.Sample;
+using Opc.Ua.Server;
 
 namespace vc2opcua
 {
@@ -92,11 +93,16 @@ namespace vc2opcua
         /// </summary>
         public void AddNode(NodeState node) => AddPredefinedNode(SystemContext, node);
 
-        public void RemoveNode(NodeState node)
+        public void RemoveNode(NodeState parentNode, NodeState childNode, NodeId referenceType)
         {
-            //TODO
-            //RemovePredefinedNode(SystemContext, node, references);
+            List<LocalReference> references = new List<LocalReference>();
+
+            references.Add(new LocalReference(parentNode.NodeId, referenceType, false, childNode.NodeId));
+            references.Add(new LocalReference(childNode.NodeId, referenceType, true, parentNode.NodeId));
+
+            RemovePredefinedNode(SystemContext, childNode, references);
         }
+
         #endregion
 
         #region Private Fields

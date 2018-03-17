@@ -177,17 +177,26 @@ namespace vc2opcua
 
         private void World_ComponentAdded(object sender, ComponentAddedEventArgs e)
         {
-            _vcUtils.VcWriteWarningMsg("Component added: " + e.Component.Name);
-
             // Add component node
             ComponentState componentNode = CreateCompleteNode(e.Component);
 
             nodeManager.AddNode(componentNode);
+
+            _vcUtils.VcWriteWarningMsg("Component added: " + e.Component.Name);
         }
 
         private void World_ComponentRemoving(object sender, ComponentRemovingEventArgs e)
         {
-            _vcUtils.VcWriteWarningMsg("Component removed: " + e.Component.Name);
+            NodeId componentId = NodeId.Create(e.Component.Name, Namespaces.vc2opcua, uaServer.NamespaceUris);
+
+            ComponentState componentNode = (ComponentState)nodeManager.FindPredefinedNode(componentId, 
+                                                                                    typeof(ComponentState));
+
+            if (componentNode != null)
+            {
+                nodeManager.RemoveNode(nodeManager.baseFolder, componentNode, ReferenceTypeIds.Organizes);
+            }
+
             // Remove component from components property
             Components.Remove(e.Component.Name);
 
@@ -198,7 +207,7 @@ namespace vc2opcua
                 SignalComponents.Remove(signal.Name);
             }
 
-            //nodeManager.RemoveNode(node);
+            _vcUtils.VcWriteWarningMsg("Component removed: " + e.Component.Name);
         }
 
         /// <summary>
@@ -206,7 +215,6 @@ namespace vc2opcua
         /// </summary>
         private void ua_SignalTriggered(ISystemContext context, NodeState node, NodeStateChangeMasks changes)
         {
-
             if (SignalComponents.ContainsKey(node.BrowseName.Name))
             {
                 ISimComponent vcComponent = _vcUtils.GetComponent(SignalComponents[node.BrowseName.Name]);
