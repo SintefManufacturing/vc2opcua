@@ -40,12 +40,6 @@ namespace vc2opcua
             m_typeNamespaceIndex = Server.NamespaceUris.GetIndexOrAppend(namespaceUris[0]);
             m_namespaceIndex = Server.NamespaceUris.GetIndexOrAppend(namespaceUris[1]);
         }
-        #endregion
-
-        #region Properties
-
-        // Dictionary that relates active signal names to their corresponding components
-        public Dictionary<string, string> ActiveSignals { get; set; } = new Dictionary<string, string>();
 
         #endregion
 
@@ -66,13 +60,31 @@ namespace vc2opcua
             lock (Lock)
             {
                 base.CreateAddressSpace(externalReferences);
-                // Base folder under which all components will be created
-                baseFolder = (NodeState)FindPredefinedNode(
-                    ExpandedNodeId.ToNodeId(ObjectIds.VisualComponents_Components, Server.NamespaceUris),
-                    typeof(NodeState));
+                CreateBaseFolder();
 
-                AddPredefinedNode(SystemContext, baseFolder);
+                // Raise event address space created
+                OnAddressSpaceCreated();
             }
+        }
+
+        public delegate void AddressSpaceCreatedEventHandler(object source, EventArgs args);
+        public event AddressSpaceCreatedEventHandler AddressSpaceCreated;
+        protected virtual void OnAddressSpaceCreated()
+        {
+            if (AddressSpaceCreated != null)
+            {
+                AddressSpaceCreated(this, EventArgs.Empty);
+            }
+        }
+
+        private void CreateBaseFolder()
+        {
+            // Base folder under which all components will be created
+            baseFolder = (NodeState)FindPredefinedNode(
+                ExpandedNodeId.ToNodeId(ObjectIds.VisualComponents_Components, Server.NamespaceUris),
+                typeof(NodeState));
+
+            AddNode(baseFolder);
         }
 
         /// <summary>

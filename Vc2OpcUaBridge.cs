@@ -35,6 +35,8 @@ namespace vc2opcua
             uaServer = server;
             nodeManager = new UaNodeManager(uaServer, configuration);
 
+            nodeManager.AddressSpaceCreated += NodeManager_AddressSpaceCreated;
+
             _application = IoC.Get<IApplication>();
             // Subscribe to added/removing component events
             _application.World.ComponentAdded += World_ComponentAdded;
@@ -55,9 +57,52 @@ namespace vc2opcua
         #region Methods
 
         /// <summary>
+        /// Gets the components active in simulation when server is started
+        /// </summary>
+        private List<NodeState> GetInitialNodes()
+        {
+            List<NodeState> initialNodes = new List<NodeState>();
+
+            foreach(ISimComponent vcComponent in _vcUtils.GetComponents())
+            {
+                initialNodes.Add(CreateCompleteNode(vcComponent));
+            }
+
+            return initialNodes;
+        }
+
+        /// <summary>
+        /// Returns a complete node with a compoenent and all its signals
+        /// </summary>
+        private ComponentState CreateCompleteNode(ISimComponent simComponent)
+        {
+            // Add component to Components property
+            Components.Add(simComponent.Name, simComponent);
+
+            ComponentState componentNode = CreateComponentNode(simComponent.Name);
+
+            // Add signals to SignalComponents property
+            VcComponent vcComponent = new VcComponent(simComponent);
+
+            foreach (ISignal vcSignal in vcComponent.GetComponentSignals())
+            {
+                SignalComponents.Add(vcSignal.Name, simComponent.Name);
+
+                // Add signal node
+                BaseDataVariableState signalNode = CreateVariableNode(componentNode.Signals, vcSignal.Name);
+
+                componentNode.Signals.AddChild(signalNode);
+
+                SetSignals(signalNode, vcSignal);
+            }
+
+            return componentNode;
+        }
+
+        /// <summary>
         /// Creates node for Component in Visual Components.
         /// </summary>
-        public ComponentState CreateComponentNode(string nodeName)
+        private ComponentState CreateComponentNode(string nodeName)
         {
             string namespaceUri = Namespaces.vc2opcua;
 
@@ -118,35 +163,26 @@ namespace vc2opcua
             uaSignal.StateChanged += ua_SignalTriggered;
         }
 
-
         #endregion
 
         #region Event Handlers
 
+        private void NodeManager_AddressSpaceCreated(object source, EventArgs args)
+        {
+            foreach (NodeState node in GetInitialNodes())
+            {
+                nodeManager.AddNode(node);
+            }
+        }
+
         private void World_ComponentAdded(object sender, ComponentAddedEventArgs e)
         {
             _vcUtils.VcWriteWarningMsg("Component added: " + e.Component.Name);
-            // Add component to Components property
-            Components.Add(e.Component.Name, e.Component);
 
             // Add component node
-            ComponentState componentNode = CreateComponentNode(e.Component.Name);
+            ComponentState componentNode = CreateCompleteNode(e.Component);
 
             nodeManager.AddNode(componentNode);
-
-            // Add signals to SignalComponents property
-            VcComponent vcComponent = new VcComponent(e.Component);
-            foreach (ISignal vcSignal in vcComponent.GetComponentSignals())
-            {
-                SignalComponents.Add(vcSignal.Name, e.Component.Name);
-
-                // Add signal node
-                BaseDataVariableState signalNode = CreateVariableNode(componentNode.Signals, vcSignal.Name);
-
-                nodeManager.AddNode(signalNode);
-
-                SetSignals(signalNode, vcSignal);
-            }
         }
 
         private void World_ComponentRemoving(object sender, ComponentRemovingEventArgs e)
@@ -191,7 +227,6 @@ namespace vc2opcua
                 _vcUtils.VcWriteWarningMsg(String.Format("Component with signal {0} not found", node.BrowseName.Name));
             }
         }
-
 
         /// <summary>
         /// Sets value of VC signal to OPCUA node
