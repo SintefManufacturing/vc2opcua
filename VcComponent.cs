@@ -27,20 +27,28 @@ namespace vc2opcua
 
         #region Methods
 
-        public Collection<IStringSignal> GetStringSignals()
+        /// <summary>
+        /// Returns signals from a component
+        /// </summary>
+        public List<ISignal> GetComponentSignals()
         {
-            Collection<IStringSignal> stringSignals = new Collection<IStringSignal>();
+            List<ISignal> signals = new List<ISignal>();
 
             var behaviors = component.Behaviors;
 
-            foreach (IBehavior signal in behaviors)
+            foreach (IBehavior behavior in behaviors)
             {
-                if (signal.Type == BehaviorType.StringSignal)
+                var signalType = behavior.Type;
+
+                if (signalType == BehaviorType.StringSignal ||
+                    signalType == BehaviorType.BooleanSignal ||
+                    signalType == BehaviorType.IntegerSignal ||
+                    signalType == BehaviorType.RealSignal)
                 {
-                    stringSignals.Add((IStringSignal)signal);
+                    signals.Add((ISignal)behavior);
                 }
             }
-            return stringSignals;
+            return signals;
         }
 
         public IProperty GetProperty(string name)

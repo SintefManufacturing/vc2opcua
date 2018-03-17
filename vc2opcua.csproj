@@ -73,13 +73,14 @@
     <Compile Include="opcuamodel\vc2opcua.DataTypes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UaServer.cs" />
+    <Compile Include="Vc2OpcUaBridge.cs" />
     <Compile Include="Vc2OpcUaPanelView.xaml.cs">
       <DependentUpon>Vc2OpcUaPanelView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Vc2OpcUaPanelViewModel.cs" />
     <Compile Include="Vc2OpcUaPlugin.cs" />
     <Compile Include="VcComponent.cs" />
-    <Compile Include="VcManager.cs" />
+    <Compile Include="UaNodeManager.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

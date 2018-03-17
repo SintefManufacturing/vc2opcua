@@ -51,40 +51,13 @@ namespace vc2opcua
         // Add methods for listener to execute when component is added or removed
         protected override void OnActivate()
         {
-            _application.World.ComponentAdded += World_ComponentAdded;
-            _application.World.ComponentRemoving += World_ComponentRemoving;
+
         }
 
         protected override void OnDeactivate(bool close)
         {
             base.OnDeactivate(close);
-            _application.World.ComponentAdded -= World_ComponentAdded;
-            _application.World.ComponentRemoving -= World_ComponentRemoving;
-        }
 
-        private void World_ComponentAdded(object sender, ComponentAddedEventArgs e)
-        {
-            _vcutils.VcWriteWarningMsg("Component added: " + e.Component.Name);
-            Components.Add(e.Component);
-
-            // Restart server
-            if (!CanStart)
-            {
-                Stop();
-                Start();
-            }
-        }
-
-        private void World_ComponentRemoving(object sender, ComponentRemovingEventArgs e)
-        {
-            _vcutils.VcWriteWarningMsg("Component removed: " + e.Component.Name);
-            Components.Remove(e.Component);
-
-            if (!CanStart)
-            {
-                Stop();
-                Start();
-            }
         }
 
         public void Start()

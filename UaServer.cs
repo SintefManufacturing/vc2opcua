@@ -152,7 +152,6 @@ namespace vc2opcua
     /// </summary>
     public partial class OpcUaServer : StandardServer
     {
-
         #region Overridden Methods
         /// <summary>
         /// Initializes the server before it starts up.
@@ -200,8 +199,9 @@ namespace vc2opcua
 
             List<INodeManager> nodeManagers = new List<INodeManager>();
 
-            // create the custom node managers.
-            nodeManagers.Add(new VcManager(server, configuration));
+            Vc2OpcUaBridge bridge = new Vc2OpcUaBridge(server, configuration);
+            // create the custom node manager.
+            nodeManagers.Add(bridge.nodeManager);
 
             // create master node manager.
             return new MasterNodeManager(server, configuration, null, nodeManagers.ToArray());
