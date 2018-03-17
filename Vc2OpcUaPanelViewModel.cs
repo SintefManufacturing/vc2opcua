@@ -17,13 +17,6 @@ namespace vc2opcua
     [Export(typeof(IDockableScreen))]
     class Vc2OpcUaPanelViewModel : DockableScreen
     {
-        // Accesses the application itself, initialize to null for avoiding compiling errors
-        [Import]
-        IApplication _application = null;
-
-        [Import]
-        IRenderService _renderService = null;
-
         VcUtils _vcutils = new VcUtils();
 
         Server _server;

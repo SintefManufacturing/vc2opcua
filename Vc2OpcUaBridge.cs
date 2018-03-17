@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Caliburn.Micro;
 using Opc.Ua;
 using Opc.Ua.Sample;
 using Opc.Ua.Server;
@@ -28,21 +29,21 @@ namespace vc2opcua
 
         #region Constructors
 
-        public Vc2OpcUaBridge(IServerInternal uaServer,
+        public Vc2OpcUaBridge(IServerInternal server,
             ApplicationConfiguration configuration)
         {
+            uaServer = server;
             nodeManager = new UaNodeManager(uaServer, configuration);
 
+            _application = IoC.Get<IApplication>();
             // Subscribe to added/removing component events
-            //_application.World.ComponentAdded += World_ComponentAdded;
-            //_application.World.ComponentRemoving += World_ComponentRemoving;
+            _application.World.ComponentAdded += World_ComponentAdded;
+            _application.World.ComponentRemoving += World_ComponentRemoving;
         }
 
         #endregion
 
         #region Properties
-
-        //TODO: create event when properties are changed, and listen from nodemanager
 
         // Contains all present components, and their corresponding ISimComponent object
         public Dictionary<string, ISimComponent> Components { get; set; } = new Dictionary<string, ISimComponent>();
@@ -124,8 +125,6 @@ namespace vc2opcua
 
         private void World_ComponentAdded(object sender, ComponentAddedEventArgs e)
         {
-            string namespaceUri = Namespaces.vc2opcua;
-
             _vcUtils.VcWriteWarningMsg("Component added: " + e.Component.Name);
             // Add component to Components property
             Components.Add(e.Component.Name, e.Component);
@@ -200,11 +199,11 @@ namespace vc2opcua
         private void vc_SignalTriggered(object sender, SignalTriggerEventArgs e)
         {
             NodeId nodeId = NodeId.Create(e.Signal.Name, Namespaces.vc2opcua, uaServer.NamespaceUris);
-            BaseDataVariableState<string> uaSignal = (BaseDataVariableState<string>)nodeManager.FindPredefinedNode(nodeId, typeof(BaseDataVariableState<string>));
+            BaseDataVariableState uaSignal = (BaseDataVariableState)nodeManager.FindPredefinedNode(nodeId, typeof(BaseDataVariableState));
 
             if (uaSignal != null)
             {
-                if (uaSignal.Value != (string)e.Signal.Value)
+                if ((string)uaSignal.Value != (string)e.Signal.Value)
                 {
                     uaSignal.Value = (string)e.Signal.Value;
                     uaSignal.Timestamp = DateTime.UtcNow;
