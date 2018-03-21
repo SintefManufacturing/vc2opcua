@@ -225,29 +225,61 @@ namespace vc2opcua
         /// </summary>
         private void ua_SignalTriggered(ISystemContext context, NodeState node, NodeStateChangeMasks changes)
         {
-            if (!LockSetVal)
+
+            if (!SignalComponents.ContainsKey(node.BrowseName.Name))
             {
-                LockSetVal = true;
+                _vcUtils.VcWriteWarningMsg(String.Format("Component with signal {0} not found", node.BrowseName.Name));
+                return;
+            }
 
-                if (SignalComponents.ContainsKey(node.BrowseName.Name))
+            // Cast signal OPCUA node to BaseDataVariableState type
+            BaseDataVariableState uaSignal = (BaseDataVariableState)node;
+
+            // Get signal component as VC object
+            ISimComponent vcComponent = _vcUtils.GetComponent(SignalComponents[node.BrowseName.Name]);
+            ISignal vcSignal = (ISignal)vcComponent.FindBehavior(node.BrowseName.Name);
+
+            if (uaSignal.DataType == new NodeId(DataTypeIds.String))
+            {
+                if ((string)uaSignal.Value == (string)vcSignal.Value)
                 {
-                    // Cast signal OPCUA node to BaseDataVariableState type
-                    BaseDataVariableState uaSignal = (BaseDataVariableState)node;
-
-                    // Get signal component as VC object
-                    ISimComponent vcComponent = _vcUtils.GetComponent(SignalComponents[node.BrowseName.Name]);
-                    ISignal vcSignal = (ISignal)vcComponent.FindBehavior(node.BrowseName.Name);
-
-                    vcSignal.Value = uaSignal.Value;
+                    _vcUtils.VcWriteWarningMsg("OPCUA tried to assign value to VC: Value is the same");
+                    return;
                 }
                 else
                 {
-                    _vcUtils.VcWriteWarningMsg(String.Format("Component with signal {0} not found", node.BrowseName.Name));
+                    vcSignal.Value = (string)uaSignal.Value;
                 }
             }
-
-            LockSetVal = false;
-
+            else if (uaSignal.DataType == new NodeId(DataTypeIds.Boolean))
+            {
+                if ((bool)uaSignal.Value == (bool)vcSignal.Value)
+                {
+                    return;
+                }
+                vcSignal.Value = (bool)uaSignal.Value;
+            }
+            else if (uaSignal.DataType == new NodeId(DataTypeIds.Double))
+            {
+                if ((double)uaSignal.Value == (double)vcSignal.Value)
+                {
+                    return;
+                }
+                vcSignal.Value = (double)uaSignal.Value;
+            }
+            else if (uaSignal.DataType == new NodeId(DataTypeIds.Integer))
+            {
+                if ((int)uaSignal.Value == (int)vcSignal.Value)
+                {
+                    return;
+                }
+                vcSignal.Value = (int)uaSignal.Value;
+            }
+            else
+            {
+                _vcUtils.VcWriteWarningMsg("OPCUA signal type not supported" + uaSignal.DataType.ToString());
+                return;
+            }
         }
 
 
@@ -257,26 +289,68 @@ namespace vc2opcua
         /// </summary>
         private void vc_SignalTriggered(object sender, SignalTriggerEventArgs e)
         {
-            if (!LockSetVal)
+            // Get OPCUA node that will get its value updated
+            NodeId nodeId = NodeId.Create(e.Signal.Name, Namespaces.vc2opcua, uaServer.NamespaceUris);
+            BaseDataVariableState uaSignal = (BaseDataVariableState)nodeManager.FindPredefinedNode(nodeId, typeof(BaseDataVariableState));
+
+            if (uaSignal == null)
             {
-                LockSetVal = true;
-
-                // Get OPCUA node that will get its value updated
-                NodeId nodeId = NodeId.Create(e.Signal.Name, Namespaces.vc2opcua, uaServer.NamespaceUris);
-                BaseDataVariableState uaSignal = (BaseDataVariableState)nodeManager.FindPredefinedNode(nodeId, typeof(BaseDataVariableState));
-
-                if (uaSignal != null)
-                {
-                    uaSignal.Value = e.Signal.Value;
-                    uaSignal.Timestamp = DateTime.UtcNow;
-                    uaSignal.ClearChangeMasks(nodeManager.context, true);
-                }
-                else
-                {
-                    // Unsubscribe to events
-                    e.Signal.SignalTrigger -= vc_SignalTriggered;
-                }
+                // Unsubscribe to events
+                e.Signal.SignalTrigger -= vc_SignalTriggered;
+                return;
             }
+            
+            if (e.Signal.Type == BehaviorType.StringSignal)
+            {
+                if ((string)uaSignal.Value == (string)e.Signal.Value)
+                {
+                    _vcUtils.VcWriteWarningMsg("VC tried to assign value to OPCUA: Value is the same");
+                    return;
+                }
+                uaSignal.Value = (string)e.Signal.Value;
+            }
+            else if (e.Signal.Type == BehaviorType.ComponentSignal)
+            {
+                ISimComponent component = (ISimComponent)e.Signal.Value;
+
+                if ((string)uaSignal.Value == component.Name)
+                {
+                    return;
+                }
+                uaSignal.Value = component.Name;
+            }
+            else if (e.Signal.Type == BehaviorType.BooleanSignal)
+            {
+                if ((bool)uaSignal.Value == (bool)e.Signal.Value)
+                {
+                    return;
+                }
+                uaSignal.Value = (bool)e.Signal.Value;
+            }
+            else if (e.Signal.Type == BehaviorType.RealSignal)
+            {
+                if ((double)uaSignal.Value == (double)e.Signal.Value)
+                {
+                    return;
+                }
+                uaSignal.Value = (double)e.Signal.Value;
+            }
+            else if (e.Signal.Type == BehaviorType.IntegerSignal)
+            {
+                if ((int)uaSignal.Value == (int)e.Signal.Value)
+                {
+                    return;
+                }
+                uaSignal.Value = (int)e.Signal.Value;
+            }
+            else
+            {
+                _vcUtils.VcWriteWarningMsg("VC signal type not supported" + e.Signal.Type.ToString());
+                return;
+            }
+
+            uaSignal.Timestamp = DateTime.UtcNow;
+            uaSignal.ClearChangeMasks(nodeManager.context, true);
         }
 
         #endregion
