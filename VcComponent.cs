@@ -30,7 +30,7 @@ namespace vc2opcua
         /// <summary>
         /// Returns signals from a component
         /// </summary>
-        public List<ISignal> GetComponentSignals()
+        public List<ISignal> GetSignals()
         {
             List<ISignal> signals = new List<ISignal>();
 
@@ -40,10 +40,11 @@ namespace vc2opcua
             {
                 var signalType = behavior.Type;
 
-                if (signalType == BehaviorType.StringSignal /*||
+                if (signalType == BehaviorType.StringSignal ||
                     signalType == BehaviorType.BooleanSignal ||
                     signalType == BehaviorType.IntegerSignal ||
-                    signalType == BehaviorType.RealSignal*/)
+                    signalType == BehaviorType.RealSignal ||
+                    signalType == BehaviorType.ComponentSignal)
                 {
                     signals.Add((ISignal)behavior);
                 }

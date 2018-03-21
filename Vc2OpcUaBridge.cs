@@ -51,6 +51,17 @@ namespace vc2opcua
         public Dictionary<string, ISimComponent> Components { get; set; } = new Dictionary<string, ISimComponent>();
         // Correlates signal names to corresponding component names
         public Dictionary<string, string> SignalComponents { get; set; } = new Dictionary<string, string>();
+        // Correlates types between VisualComponents and OPCUA types
+        Dictionary<BehaviorType, NodeId> Vc2OpcuaTypeCorrelations { get; } = new Dictionary<BehaviorType, NodeId>
+        {
+            { BehaviorType.StringSignal, new NodeId(DataTypeIds.String) },
+            { BehaviorType.BooleanSignal, new NodeId(DataTypeIds.Boolean) },
+            { BehaviorType.RealSignal, new NodeId(DataTypeIds.Double) },
+            { BehaviorType.IntegerSignal, new NodeId(DataTypeIds.Integer) },
+            { BehaviorType.ComponentSignal, new NodeId(DataTypeIds.String) }
+        };
+        // Lock for setting values
+        private bool LockSetVal { get; set; } = false; 
 
         #endregion
 
@@ -65,16 +76,16 @@ namespace vc2opcua
 
             foreach(ISimComponent vcComponent in _vcUtils.GetComponents())
             {
-                initialNodes.Add(CreateCompleteNode(vcComponent));
+                initialNodes.Add(CreateNodeTree(vcComponent));
             }
 
             return initialNodes;
         }
 
         /// <summary>
-        /// Returns a complete node with a compoenent and all its signals
+        /// Returns a node tree with a component and all its signals
         /// </summary>
-        private ComponentState CreateCompleteNode(ISimComponent simComponent)
+        private ComponentState CreateNodeTree(ISimComponent simComponent)
         {
             // Add component to Components property
             Components.Add(simComponent.Name, simComponent);
@@ -84,12 +95,12 @@ namespace vc2opcua
             // Add signals to SignalComponents property
             VcComponent vcComponent = new VcComponent(simComponent);
 
-            foreach (ISignal vcSignal in vcComponent.GetComponentSignals())
+            foreach (ISignal vcSignal in vcComponent.GetSignals())
             {
                 SignalComponents.Add(vcSignal.Name, simComponent.Name);
 
                 // Add signal node
-                BaseDataVariableState signalNode = CreateVariableNode(componentNode.Signals, vcSignal.Name);
+                BaseDataVariableState signalNode = CreateVariableNode(componentNode.Signals, vcSignal.Name, vcSignal.Type);
 
                 componentNode.Signals.AddChild(signalNode);
 
@@ -130,7 +141,7 @@ namespace vc2opcua
         /// <summary>
         /// Creates node for Signal associated to Component in Visual Components.
         /// </summary>
-        private BaseDataVariableState CreateVariableNode(FolderState parentFolder, string nodeName)
+        private BaseDataVariableState CreateVariableNode(FolderState parentFolder, string nodeName, BehaviorType signalType)
         {
             string namespaceUri = Namespaces.vc2opcua;
 
@@ -144,6 +155,8 @@ namespace vc2opcua
                 null,
                 true);
 
+            variableNode.DataType = Vc2OpcuaTypeCorrelations[signalType];
+
             parentFolder.AddReference(ReferenceTypeIds.Organizes, false, variableNode.NodeId);
             variableNode.AddReference(ReferenceTypeIds.Organizes, true, parentFolder.NodeId);
 
@@ -155,9 +168,6 @@ namespace vc2opcua
         /// </summary>
         private void SetSignals(BaseDataVariableState uaSignal, ISignal vcSignal)
         {
-            // Start setting value of VC signal to OPCUA signal
-            uaSignal.Value = (string)vcSignal.Value;
-
             // Subscribe to signal triggered events
             vcSignal.SignalTrigger += vc_SignalTriggered;
             uaSignal.StateChanged += ua_SignalTriggered;
@@ -178,7 +188,7 @@ namespace vc2opcua
         private void World_ComponentAdded(object sender, ComponentAddedEventArgs e)
         {
             // Add component node
-            ComponentState componentNode = CreateCompleteNode(e.Component);
+            ComponentState componentNode = CreateNodeTree(e.Component);
 
             nodeManager.AddNode(componentNode);
 
@@ -202,7 +212,7 @@ namespace vc2opcua
 
             // Remove signals from SignalComponents property
             VcComponent vcComponent = new VcComponent(e.Component);
-            foreach (ISignal signal in vcComponent.GetComponentSignals())
+            foreach (ISignal signal in vcComponent.GetSignals())
             {
                 SignalComponents.Remove(signal.Name);
             }
@@ -215,48 +225,57 @@ namespace vc2opcua
         /// </summary>
         private void ua_SignalTriggered(ISystemContext context, NodeState node, NodeStateChangeMasks changes)
         {
-            if (SignalComponents.ContainsKey(node.BrowseName.Name))
+            if (!LockSetVal)
             {
-                ISimComponent vcComponent = _vcUtils.GetComponent(SignalComponents[node.BrowseName.Name]);
+                LockSetVal = true;
 
-                if (vcComponent != null)
+                if (SignalComponents.ContainsKey(node.BrowseName.Name))
                 {
-                    IStringSignal vcSignal = (IStringSignal)vcComponent.FindBehavior(node.BrowseName.Name);
+                    // Cast signal OPCUA node to BaseDataVariableState type
                     BaseDataVariableState uaSignal = (BaseDataVariableState)node;
 
-                    if ((string)vcSignal.Value != (string)uaSignal.Value)
-                    {
-                        vcSignal.Value = uaSignal.Value;
-                    }
+                    // Get signal component as VC object
+                    ISimComponent vcComponent = _vcUtils.GetComponent(SignalComponents[node.BrowseName.Name]);
+                    ISignal vcSignal = (ISignal)vcComponent.FindBehavior(node.BrowseName.Name);
+
+                    vcSignal.Value = uaSignal.Value;
+                }
+                else
+                {
+                    _vcUtils.VcWriteWarningMsg(String.Format("Component with signal {0} not found", node.BrowseName.Name));
                 }
             }
-            else
-            {
-                _vcUtils.VcWriteWarningMsg(String.Format("Component with signal {0} not found", node.BrowseName.Name));
-            }
+
+            LockSetVal = false;
+
         }
+
+
 
         /// <summary>
         /// Sets value of VC signal to OPCUA node
         /// </summary>
         private void vc_SignalTriggered(object sender, SignalTriggerEventArgs e)
         {
-            NodeId nodeId = NodeId.Create(e.Signal.Name, Namespaces.vc2opcua, uaServer.NamespaceUris);
-            BaseDataVariableState uaSignal = (BaseDataVariableState)nodeManager.FindPredefinedNode(nodeId, typeof(BaseDataVariableState));
-
-            if (uaSignal != null)
+            if (!LockSetVal)
             {
-                if ((string)uaSignal.Value != (string)e.Signal.Value)
+                LockSetVal = true;
+
+                // Get OPCUA node that will get its value updated
+                NodeId nodeId = NodeId.Create(e.Signal.Name, Namespaces.vc2opcua, uaServer.NamespaceUris);
+                BaseDataVariableState uaSignal = (BaseDataVariableState)nodeManager.FindPredefinedNode(nodeId, typeof(BaseDataVariableState));
+
+                if (uaSignal != null)
                 {
-                    uaSignal.Value = (string)e.Signal.Value;
+                    uaSignal.Value = e.Signal.Value;
                     uaSignal.Timestamp = DateTime.UtcNow;
                     uaSignal.ClearChangeMasks(nodeManager.context, true);
                 }
-            }
-            else
-            {
-                // Unsubscribe to events
-                e.Signal.SignalTrigger -= vc_SignalTriggered;
+                else
+                {
+                    // Unsubscribe to events
+                    e.Signal.SignalTrigger -= vc_SignalTriggered;
+                }
             }
         }
 
