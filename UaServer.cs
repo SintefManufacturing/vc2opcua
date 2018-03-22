@@ -40,14 +40,13 @@ namespace vc2opcua
                 exitCode = ExitCode.ErrorServerNotStarted;
                 // Start the server
                 ServerTask().Wait();
-                Debug.WriteLine("Server started");
+                logger.Info("[vc2opcua] Server started");
                 exitCode = ExitCode.ErrorServerRunning;
             }
             catch (Exception ex)
             {
                 Utils.Trace("ServiceResultException:" + ex.Message);
-                Debug.WriteLine("Exception: {0}", ex.Message);
-                logger.Error(String.Format("[vc2opcua] Exception: {0}", ex.Message));
+                logger.Error(String.Format("[vc2opcua] {0}",ex.ToString()));
                 exitCode = ExitCode.ErrorServerException;
                 return;
             }
@@ -67,7 +66,23 @@ namespace vc2opcua
         }
 
         public static ExitCode ExitCode { get => exitCode; }
-
+        
+        private static void CertificateValidator_CertificateValidation(CertificateValidator validator, CertificateValidationEventArgs e)
+        {
+            if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
+            {
+                e.Accept = autoAccept;
+                if (autoAccept)
+                {
+                    Debug.WriteLine("Accepted Certificate: {0}", e.Certificate.Subject);
+                }
+                else
+                {
+                    Debug.WriteLine("Rejected Certificate: {0}", e.Certificate.Subject);
+                }
+            }
+        }
+        
         private async Task ServerTask()
         {
             //ApplicationInstance.MessageDlg = new ApplicationMessageDlg();
@@ -80,8 +95,19 @@ namespace vc2opcua
 
             // load the application configuration.
             ApplicationConfiguration config = await application.LoadApplicationConfiguration(false);
+            
+            // check the application certificate.
+            bool haveAppCertificate = await application.CheckApplicationInstanceCertificate(false, 0);
+            if (!haveAppCertificate)
+            {
+                throw new Exception("Application instance certificate invalid!");
+            }
 
-            Debug.WriteLine("Start the server");
+            if (!config.SecurityConfiguration.AutoAcceptUntrustedCertificates)
+            {
+                config.CertificateValidator.CertificateValidation += new CertificateValidationEventHandler(CertificateValidator_CertificateValidation);
+            }
+
             // start the server.
             server = new OpcUaServer();
             await application.Start(server);
@@ -156,6 +182,8 @@ namespace vc2opcua
     /// </summary>
     public partial class OpcUaServer : StandardServer
     {
+        private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         #region Overridden Methods
         /// <summary>
         /// Initializes the server before it starts up.
@@ -240,7 +268,7 @@ namespace vc2opcua
         /// </remarks>
         protected override void OnNodeManagerStarted(IServerInternal server)
         {
-            Debug.WriteLine("The NodeManagers have started.");
+            logger.Info("[vc2opcua] Node managers have started");
 
             // allow base class processing to happen first.
             base.OnNodeManagerStarted(server);

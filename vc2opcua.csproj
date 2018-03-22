@@ -91,7 +91,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <EmbeddedResource Include="opcuamodel\vc2opcua.PredefinedNodes.uanodes" />
+    <EmbeddedResource Include="opcuamodel\vc2opcua.PredefinedNodes.uanodes">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
     <None Include="opcuamodel\vc2opcua.Types.bsd" />
     <None Include="opcuamodel\vc2opcua.Types.xsd">
       <SubType>Designer</SubType>
@@ -131,10 +133,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Vc2OpcUaServer.Config.xml">
+    <Resource Include="Vc2OpcUaServer.Config.xml">
       <SubType>Designer</SubType>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
   <ItemGroup>
     <Content Include="opcuamodel\vc2opcua.NodeSet2.xml" />
