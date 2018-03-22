@@ -9,8 +9,6 @@ using System.ComponentModel.Composition;
 using Caliburn.Micro;
 using VisualComponents.Create3D;
 using VisualComponents.UX.Shared;
-using log4net.Appender;
-using log4net.Core;
 
 namespace vc2opcua
 {
@@ -32,24 +30,16 @@ namespace vc2opcua
         }
     }
 
-    public class VcUtils //: IAppender
+    public class VcUtils
     {
         [Import]
         IApplication _application = null;
 
         IMessageService _ms = IoC.Get<IMessageService>();
 
-        //private log4net.ILog log;
-        //private int LogMaxSize = 5000;
-
         public VcUtils()
         {
-            /*
-            //Set up logging
-            log4net.Config.XmlConfigurator.Configure();
-            log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-            ((log4net.Repository.Hierarchy.Hierarchy)log4net.LogManager.GetRepository()).Root.AddAppender(this);
-            */
+            
         }
 
         /// <summary>
@@ -86,20 +76,9 @@ namespace vc2opcua
             _ms.AppendMessage("[vc2opcua] " + message, MessageLevel.Warning);
         }
 
-/*
-        // Logger stuff that is not set
-        public string Name { get; set; }
-
-        public void Close()
+        public void VcWriteErrorMsg(string message)
         {
-            throw new NotImplementedException();
-            
+            _ms.AppendMessage("[vc2opcua] " + message, MessageLevel.Error);
         }
-
-        public void DoAppend(LoggingEvent loggingEvent)
-        {
-            throw new NotImplementedException();
-        }
-*/
     }
 }

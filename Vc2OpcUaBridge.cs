@@ -243,7 +243,6 @@ namespace vc2opcua
             {
                 if ((string)uaSignal.Value == (string)vcSignal.Value)
                 {
-                    _vcUtils.VcWriteWarningMsg("OPCUA tried to assign value to VC: Value is the same");
                     return;
                 }
                 else
@@ -304,7 +303,6 @@ namespace vc2opcua
             {
                 if ((string)uaSignal.Value == (string)e.Signal.Value)
                 {
-                    _vcUtils.VcWriteWarningMsg("VC tried to assign value to OPCUA: Value is the same");
                     return;
                 }
                 uaSignal.Value = (string)e.Signal.Value;

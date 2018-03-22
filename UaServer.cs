@@ -24,6 +24,8 @@ namespace vc2opcua
 
         public Thread ServerThread;
 
+        private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public Server(bool _autoAccept, int _stopTimeout)
         {
             autoAccept = _autoAccept;
@@ -45,6 +47,7 @@ namespace vc2opcua
             {
                 Utils.Trace("ServiceResultException:" + ex.Message);
                 Debug.WriteLine("Exception: {0}", ex.Message);
+                logger.Error(String.Format("[vc2opcua] Exception: {0}", ex.Message));
                 exitCode = ExitCode.ErrorServerException;
                 return;
             }
@@ -68,11 +71,12 @@ namespace vc2opcua
         private async Task ServerTask()
         {
             //ApplicationInstance.MessageDlg = new ApplicationMessageDlg();
-            ApplicationInstance application = new ApplicationInstance();
-
-            application.ApplicationName = "Vc2OpcUa Server";
-            application.ApplicationType = ApplicationType.Server;
-            application.ConfigSectionName = "Vc2OpcUaServer";
+            ApplicationInstance application = new ApplicationInstance
+            {
+                ApplicationName = "Vc2OpcUa Server",
+                ApplicationType = ApplicationType.Server,
+                ConfigSectionName = "Vc2OpcUaServer"
+            };
 
             // load the application configuration.
             ApplicationConfiguration config = await application.LoadApplicationConfiguration(false);
@@ -207,7 +211,6 @@ namespace vc2opcua
             return new MasterNodeManager(server, configuration, null, nodeManagers.ToArray());
         }
 
-
         /// <summary>
         /// Loads the non-configurable properties for the application.
         /// </summary>
@@ -216,14 +219,15 @@ namespace vc2opcua
         /// </remarks>
         protected override ServerProperties LoadServerProperties()
         {
-            ServerProperties properties = new ServerProperties();
-
-            properties.ManufacturerName = "OPC Foundation";
-            properties.ProductName = "OPC UA SDK Samples";
-            properties.ProductUri = "http://opcfoundation.org/UA/Samples/v1.0";
-            properties.SoftwareVersion = Utils.GetAssemblySoftwareVersion();
-            properties.BuildNumber = Utils.GetAssemblyBuildNumber();
-            properties.BuildDate = Utils.GetAssemblyTimestamp();
+            ServerProperties properties = new ServerProperties
+            {
+                ManufacturerName = "OPC Foundation",
+                ProductName = "OPC UA SDK Samples",
+                ProductUri = "http://opcfoundation.org/UA/Samples/v1.0",
+                SoftwareVersion = Utils.GetAssemblySoftwareVersion(),
+                BuildNumber = Utils.GetAssemblyBuildNumber(),
+                BuildDate = Utils.GetAssemblyTimestamp()
+            };
 
             return properties;
         }
