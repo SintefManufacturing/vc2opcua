@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Opc.Ua.Server", "..\UA-.NET
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OpcUaStack", "OpcUaStack", "{FA63F664-1624-45FB-AFB4-DE300882F2D8}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "vc2opcuaSetup", "vc2opcuaSetup\vc2opcuaSetup.vdproj", "{F7EF6627-08D5-460C-9B7C-415F14C100D3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,8 @@ Global
 		{91B5B9A7-85F7-41C1-8A9C-CE86342EC514}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91B5B9A7-85F7-41C1-8A9C-CE86342EC514}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{91B5B9A7-85F7-41C1-8A9C-CE86342EC514}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7EF6627-08D5-460C-9B7C-415F14C100D3}.Debug|Any CPU.ActiveCfg = Debug
+		{F7EF6627-08D5-460C-9B7C-415F14C100D3}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
