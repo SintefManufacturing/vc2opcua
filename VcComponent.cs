@@ -16,7 +16,7 @@ namespace vc2opcua
     class VcComponent
     {
         [Import]
-        ISimComponent component = null;
+        public ISimComponent component = null;
 
         VcUtils _vcutils = new VcUtils();
 

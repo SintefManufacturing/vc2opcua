@@ -47,8 +47,8 @@ namespace vc2opcua
 
         #region Properties
 
-        // Correlates signal names to corresponding component names
-        public Dictionary<string, string> SignalComponents { get; set; } = new Dictionary<string, string>();
+        // Correlates OPCUA BrowseNames to corresponding component names
+        public Dictionary<string, string> UaBrowseName2VcComponentName { get; set; } = new Dictionary<string, string>();
         // Correlates types between VisualComponents and OPCUA types
         Dictionary<BehaviorType, NodeId> Vc2OpcuaTypeCorrelations { get; } = new Dictionary<BehaviorType, NodeId>
         {
@@ -86,22 +86,27 @@ namespace vc2opcua
 
             ComponentState componentNode = CreateComponentNode(simComponent.Name);
 
-            // Add signals to SignalComponents property
             VcComponent vcComponent = new VcComponent(simComponent);
 
+            AddSignalNodes(componentNode, vcComponent);
+
+            return componentNode;
+        }
+
+        private void AddSignalNodes(ComponentState uaComponentNode, VcComponent vcComponent)
+        {
             foreach (ISignal vcSignal in vcComponent.GetSignals())
             {
-                SignalComponents.Add(vcSignal.Name, simComponent.Name);
-
                 // Add signal node
-                BaseDataVariableState signalNode = CreateVariableNode(componentNode.Signals, vcSignal.Name, vcSignal.Type);
+                BaseDataVariableState signalNode = CreateVariableNode(uaComponentNode.Signals, vcSignal.Name, Vc2OpcuaTypeCorrelations[vcSignal.Type]);
+                uaComponentNode.Signals.AddChild(signalNode);
 
-                componentNode.Signals.AddChild(signalNode);
+                // Store names in UaBrowseName2VcComponentName
+                UaBrowseName2VcComponentName.Add(signalNode.BrowseName.Name, vcComponent.component.Name);
 
                 SetSignals(signalNode, vcSignal);
             }
 
-            return componentNode;
         }
 
         /// <summary>
@@ -113,8 +118,8 @@ namespace vc2opcua
 
             ComponentState componentNode = new ComponentState(null);
             NodeId componentNodeId = NodeId.Create(nodeName, namespaceUri, uaServer.NamespaceUris);
-            NodeId signalsNodeId = NodeId.Create("Signals_" + nodeName, namespaceUri, uaServer.NamespaceUris);
-            NodeId propertiesNodeId = NodeId.Create("Properties_" + nodeName, namespaceUri, uaServer.NamespaceUris);
+            NodeId signalsNodeId = NodeId.Create("Signals-" + nodeName, namespaceUri, uaServer.NamespaceUris);
+            NodeId propertiesNodeId = NodeId.Create("Properties-" + nodeName, namespaceUri, uaServer.NamespaceUris);
 
             componentNode.Create(
                 nodeManager.context,
@@ -138,21 +143,22 @@ namespace vc2opcua
         /// <summary>
         /// Creates node for Signal associated to Component in Visual Components.
         /// </summary>
-        private BaseDataVariableState CreateVariableNode(FolderState parentFolder, string nodeName, BehaviorType signalType)
+        private BaseDataVariableState CreateVariableNode(FolderState parentFolder, string nodeName, NodeId nodeDataType)
         {
             string namespaceUri = Namespaces.vc2opcua;
+            string nodeNameParent = String.Format("{0}-{1}", nodeName, parentFolder.Parent.DisplayName);
 
             BaseDataVariableState variableNode = new BaseDataVariableState(parentFolder);
-            NodeId nodeId = NodeId.Create(nodeName, namespaceUri, uaServer.NamespaceUris);
+            NodeId nodeId = NodeId.Create(nodeNameParent, namespaceUri, uaServer.NamespaceUris);
 
             variableNode.Create(
                 nodeManager.context,
                 nodeId,
-                new QualifiedName(nodeName, (ushort)uaServer.NamespaceUris.GetIndex(namespaceUri)),
-                null,
+                new QualifiedName(nodeNameParent, (ushort)uaServer.NamespaceUris.GetIndex(namespaceUri)),
+                new LocalizedText(nodeName),
                 true);
-
-            variableNode.DataType = Vc2OpcuaTypeCorrelations[signalType];
+            
+            variableNode.DataType = nodeDataType;
 
             parentFolder.AddReference(ReferenceTypeIds.Organizes, false, variableNode.NodeId);
             variableNode.AddReference(ReferenceTypeIds.Organizes, true, parentFolder.NodeId);
@@ -208,7 +214,7 @@ namespace vc2opcua
             VcComponent vcComponent = new VcComponent(e.Component);
             foreach (ISignal signal in vcComponent.GetSignals())
             {
-                SignalComponents.Remove(signal.Name);
+                UaBrowseName2VcComponentName.Remove(signal.Name);
             }
 
             _vcUtils.VcWriteWarningMsg("Component removed: " + e.Component.Name);
@@ -220,7 +226,7 @@ namespace vc2opcua
         private void ua_SignalTriggered(ISystemContext context, NodeState node, NodeStateChangeMasks changes)
         {
 
-            if (!SignalComponents.ContainsKey(node.BrowseName.Name))
+            if (!UaBrowseName2VcComponentName.ContainsKey(node.BrowseName.Name))
             {
                 _vcUtils.VcWriteWarningMsg(String.Format("Component with signal {0} not found", node.BrowseName.Name));
                 return;
@@ -230,8 +236,8 @@ namespace vc2opcua
             BaseDataVariableState uaSignal = (BaseDataVariableState)node;
 
             // Get signal component as VC object
-            ISimComponent vcComponent = _vcUtils.GetComponent(SignalComponents[node.BrowseName.Name]);
-            ISignal vcSignal = (ISignal)vcComponent.FindBehavior(node.BrowseName.Name);
+            ISimComponent vcComponent = _vcUtils.GetComponent(UaBrowseName2VcComponentName[node.BrowseName.Name]);
+            ISignal vcSignal = (ISignal)vcComponent.FindBehavior(node.DisplayName.ToString());
 
             if (uaSignal.DataType == new NodeId(DataTypeIds.String))
             {
