@@ -114,6 +114,7 @@ namespace vc2opcua
             ComponentState componentNode = new ComponentState(null);
             NodeId componentNodeId = NodeId.Create(nodeName, namespaceUri, uaServer.NamespaceUris);
             NodeId signalsNodeId = NodeId.Create("Signals_" + nodeName, namespaceUri, uaServer.NamespaceUris);
+            NodeId propertiesNodeId = NodeId.Create("Properties_" + nodeName, namespaceUri, uaServer.NamespaceUris);
 
             componentNode.Create(
                 nodeManager.context,
@@ -123,8 +124,10 @@ namespace vc2opcua
                 true);
 
             componentNode.Signals.NodeId = signalsNodeId;
+            componentNode.Properties.NodeId = propertiesNodeId;
 
             componentNode.AddChild(componentNode.Signals);
+            componentNode.AddChild(componentNode.Properties);
 
             nodeManager.baseFolder.AddReference(ReferenceTypeIds.Organizes, false, componentNode.NodeId);
             componentNode.AddReference(ReferenceTypeIds.Organizes, true, nodeManager.baseFolder.NodeId);
