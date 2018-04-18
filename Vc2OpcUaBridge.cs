@@ -47,8 +47,6 @@ namespace vc2opcua
 
         #region Properties
 
-        // Contains all present components, and their corresponding ISimComponent object
-        public Dictionary<string, ISimComponent> Components { get; set; } = new Dictionary<string, ISimComponent>();
         // Correlates signal names to corresponding component names
         public Dictionary<string, string> SignalComponents { get; set; } = new Dictionary<string, string>();
         // Correlates types between VisualComponents and OPCUA types
@@ -60,8 +58,6 @@ namespace vc2opcua
             { BehaviorType.IntegerSignal, new NodeId(DataTypeIds.Integer) },
             { BehaviorType.ComponentSignal, new NodeId(DataTypeIds.String) }
         };
-        // Lock for setting values
-        private bool LockSetVal { get; set; } = false; 
 
         #endregion
 
@@ -87,8 +83,6 @@ namespace vc2opcua
         /// </summary>
         private ComponentState CreateNodeTree(ISimComponent simComponent)
         {
-            // Add component to Components property
-            Components.Add(simComponent.Name, simComponent);
 
             ComponentState componentNode = CreateComponentNode(simComponent.Name);
 
@@ -206,9 +200,6 @@ namespace vc2opcua
             {
                 nodeManager.RemoveNode(nodeManager.baseFolder, componentNode, ReferenceTypeIds.Organizes);
             }
-
-            // Remove component from components property
-            Components.Remove(e.Component.Name);
 
             // Remove signals from SignalComponents property
             VcComponent vcComponent = new VcComponent(e.Component);
