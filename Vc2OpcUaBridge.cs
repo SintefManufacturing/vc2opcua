@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Text;
@@ -113,13 +114,15 @@ namespace vc2opcua
             foreach (ISignal vcSignal in vcComponent.GetSignals())
             {
                 // Add signal node
-                BaseDataVariableState signalNode = CreateVariableNode(uaComponentNode.Signals, vcSignal.Name, VcSignal2OpcuaType[vcSignal.Type]);
-                uaComponentNode.Signals.AddChild(signalNode);
+                BaseDataVariableState uaSignalNode = CreateVariableNode(uaComponentNode.Signals, vcSignal.Name, VcSignal2OpcuaType[vcSignal.Type]);
+                uaComponentNode.Signals.AddChild(uaSignalNode);
 
                 // Store names in UaBrowseName2VcComponentName
-                UaBrowseName2VcComponentName.Add(signalNode.BrowseName.Name, vcComponent.component.Name);
+                UaBrowseName2VcComponentName.Add(uaSignalNode.BrowseName.Name, vcComponent.component.Name);
 
-                SetSignals(signalNode, vcSignal);
+                // Subscribe to signal triggered events
+                vcSignal.SignalTrigger += vc_SignalTriggered;
+                uaSignalNode.StateChanged += ua_SignalTriggered;
             }
 
         }
@@ -134,13 +137,18 @@ namespace vc2opcua
                 try
                 {
                     // Add signal node
-                    BaseDataVariableState propertyNode = CreateVariableNode(uaComponentNode.Properties, vcProperty.Name, VcProperty2OpcuaType[vcProperty.PropertyType]);
-                    uaComponentNode.Properties.AddChild(propertyNode);
+                    BaseDataVariableState uaPropertyNode = CreateVariableNode(uaComponentNode.Properties, vcProperty.Name, VcProperty2OpcuaType[vcProperty.PropertyType]);
+                    uaComponentNode.Properties.AddChild(uaPropertyNode);
                     
                     // Store names in UaBrowseName2VcComponentName
-                    UaBrowseName2VcComponentName.Add(propertyNode.BrowseName.Name, vcComponent.component.Name);
+                    UaBrowseName2VcComponentName.Add(uaPropertyNode.BrowseName.Name, vcComponent.component.Name);
 
-                    //SetSignals(signalNode, vcProperty);
+                    uaPropertyNode.Value = vcProperty.Value;
+
+                    // Subscribe to property changed events
+                    vcProperty.PropertyChanged += vc_PropertyChanged;
+                    uaPropertyNode.StateChanged += ua_PropertyChanged;
+
                 }
                 catch (Exception ex)
                 {
@@ -207,16 +215,6 @@ namespace vc2opcua
             return variableNode;
         }
 
-        /// <summary>
-        /// Set signal values and mutually subscribe to signal changes
-        /// </summary>
-        private void SetSignals(BaseDataVariableState uaSignal, ISignal vcSignal)
-        {
-            // Subscribe to signal triggered events
-            vcSignal.SignalTrigger += vc_SignalTriggered;
-            uaSignal.StateChanged += ua_SignalTriggered;
-        }
-
         #endregion
 
         #region Event Handlers
@@ -255,7 +253,9 @@ namespace vc2opcua
             VcComponent vcComponent = new VcComponent(e.Component);
             foreach (ISignal signal in vcComponent.GetSignals())
             {
-                UaBrowseName2VcComponentName.Remove(signal.Name);
+                string nodeNameParent = String.Format("{0}-{1}", signal.Name, vcComponent.component.Name);
+
+                UaBrowseName2VcComponentName.Remove(nodeNameParent);
             }
 
             _vcUtils.VcWriteWarningMsg("Component removed: " + e.Component.Name);
@@ -286,10 +286,7 @@ namespace vc2opcua
                 {
                     return;
                 }
-                else
-                {
-                    vcSignal.Value = (string)uaSignal.Value;
-                }
+                vcSignal.Value = (string)uaSignal.Value;
             }
             else if (uaSignal.DataType == new NodeId(DataTypeIds.Boolean))
             {
@@ -321,8 +318,6 @@ namespace vc2opcua
                 return;
             }
         }
-
-
 
         /// <summary>
         /// Sets value of VC signal to OPCUA node
@@ -391,6 +386,126 @@ namespace vc2opcua
 
             uaSignal.Timestamp = DateTime.UtcNow;
             uaSignal.ClearChangeMasks(nodeManager.context, true);
+        }
+
+        /// <summary>
+        /// Sets value of OPCUA node property to corresponding VC property
+        /// </summary>
+        private void ua_PropertyChanged(ISystemContext context, NodeState node, NodeStateChangeMasks changes)
+        {
+
+            if (!UaBrowseName2VcComponentName.ContainsKey(node.BrowseName.Name))
+            {
+                _vcUtils.VcWriteWarningMsg(String.Format("Component with property {0} not found", node.BrowseName.Name));
+                return;
+            }
+
+            // Cast property OPCUA node to BaseDataVariableState type
+            BaseDataVariableState uaProperty = (BaseDataVariableState)node;
+
+            // Get property component as VC object
+            ISimComponent vcComponent = _vcUtils.GetComponent(UaBrowseName2VcComponentName[node.BrowseName.Name]);
+            IProperty vcProperty = vcComponent.GetProperty(node.DisplayName.ToString());
+
+            if (uaProperty.DataType == new NodeId(DataTypeIds.String))
+            {
+                if ((string)uaProperty.Value == (string)vcProperty.Value)
+                {
+                    return;
+                }
+                vcProperty.Value = (string)uaProperty.Value;
+            }
+            else if (uaProperty.DataType == new NodeId(DataTypeIds.Boolean))
+            {
+                if ((bool)uaProperty.Value == (bool)vcProperty.Value)
+                {
+                    return;
+                }
+                vcProperty.Value = (bool)uaProperty.Value;
+            }
+            else if (uaProperty.DataType == new NodeId(DataTypeIds.Double))
+            {
+                if ((double)uaProperty.Value == (double)vcProperty.Value)
+                {
+                    return;
+                }
+                vcProperty.Value = (double)uaProperty.Value;
+            }
+            else if (uaProperty.DataType == new NodeId(DataTypeIds.Integer))
+            {
+                if ((int)uaProperty.Value == (int)vcProperty.Value)
+                {
+                    return;
+                }
+                vcProperty.Value = (int)uaProperty.Value;
+            }
+            else
+            {
+                _vcUtils.VcWriteWarningMsg("OPCUA property type not supported" + uaProperty.DataType.ToString());
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Sets value of VC property to OPCUA node
+        /// </summary>
+        private void vc_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            IProperty vcProperty = (IProperty)sender;
+
+            // Get OPCUA node that will get its value updated
+            string nodeNameParent = String.Format("{0}-{1}", vcProperty.Name, vcProperty.Container);
+            NodeId nodeId = NodeId.Create(nodeNameParent, Namespaces.vc2opcua, uaServer.NamespaceUris);
+            BaseDataVariableState uaProperty = (BaseDataVariableState)nodeManager.FindPredefinedNode(nodeId, typeof(BaseDataVariableState));
+
+            if (uaProperty == null)
+            {
+                // Unsubscribe to events
+                vcProperty.PropertyChanged -= vc_PropertyChanged;
+                return;
+            }
+
+            if (vcProperty.PropertyType == typeof(String))
+            {
+                if ((string)uaProperty.Value == (string)vcProperty.Value)
+                {
+                    return;
+                }
+                uaProperty.Value = (string)vcProperty.Value;
+            }
+            else if (vcProperty.PropertyType == typeof(Boolean))
+            {
+                if ((bool)uaProperty.Value == (bool)vcProperty.Value)
+                {
+                    return;
+                }
+                uaProperty.Value = (bool)vcProperty.Value;
+            }
+            else if (vcProperty.PropertyType == typeof(Double))
+            {
+                if ((double)uaProperty.Value == (double)vcProperty.Value)
+                {
+                    return;
+                }
+                uaProperty.Value = (double)vcProperty.Value;
+            }
+            else if (vcProperty.PropertyType == typeof(Int32))
+            {
+                if ((int)uaProperty.Value == (int)vcProperty.Value)
+                {
+                    return;
+                }
+                uaProperty.Value = (int)vcProperty.Value;
+            }
+            else
+            {
+                _vcUtils.VcWriteWarningMsg("VC property type not supported" + vcProperty.PropertyType.ToString());
+                return;
+            }
+
+            uaProperty.Timestamp = DateTime.UtcNow;
+            uaProperty.ClearChangeMasks(nodeManager.context, true);
+
         }
 
         #endregion
