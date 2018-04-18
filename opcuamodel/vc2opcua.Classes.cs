@@ -91,8 +91,8 @@ namespace vc2opcua
         #region Initialization String
         private const string InitializationString =
            "AQAAABIAAAB2YzJvcGN1YTpuYW1lc3BhY2X/////hGCAAAEAAAABABUAAABDb21wb25lbnRUeXBlSW5z" +
-           "dGFuY2UBAZw6AQGcOgH/////AQAAAIRggAoBAAAAAQAHAAAAU2lnbmFscwEBnToALwA9nToAAAH/////" +
-           "AAAAAA==";
+           "dGFuY2UBAZw6AQGcOgH/////AgAAAIRggAoBAAAAAQAHAAAAU2lnbmFscwEBnToALwA9nToAAAH/////" +
+           "AAAAAIRggAoBAAAAAQAKAAAAUHJvcGVydGllcwEBnjoALwA9njoAAAH/////AAAAAA==";
         #endregion
         #endif
         #endregion
@@ -118,6 +118,27 @@ namespace vc2opcua
                 m_signals = value;
             }
         }
+
+        /// <summary>
+        /// A description for the Properties Object.
+        /// </summary>
+        public FolderState Properties
+        {
+            get
+            {
+                return m_properties;
+            }
+
+            set
+            {
+                if (!Object.ReferenceEquals(m_properties, value))
+                {
+                    ChangeMasks |= NodeStateChangeMasks.Children;
+                }
+
+                m_properties = value;
+            }
+        }
         #endregion
 
         #region Overridden Methods
@@ -133,6 +154,11 @@ namespace vc2opcua
             if (m_signals != null)
             {
                 children.Add(m_signals);
+            }
+
+            if (m_properties != null)
+            {
+                children.Add(m_properties);
             }
 
             base.GetChildren(context, children);
@@ -176,6 +202,27 @@ namespace vc2opcua
                     instance = Signals;
                     break;
                 }
+
+                case vc2opcua.BrowseNames.Properties:
+                {
+                    if (createOrReplace)
+                    {
+                        if (Properties == null)
+                        {
+                            if (replacement == null)
+                            {
+                                Properties = new FolderState(this);
+                            }
+                            else
+                            {
+                                Properties = (FolderState)replacement;
+                            }
+                        }
+                    }
+
+                    instance = Properties;
+                    break;
+                }
             }
 
             if (instance != null)
@@ -189,6 +236,7 @@ namespace vc2opcua
 
         #region Private Fields
         private FolderState m_signals;
+        private FolderState m_properties;
         #endregion
     }
     #endif

@@ -51,6 +51,11 @@ namespace vc2opcua
         public const uint ComponentType_Signals = 15005;
 
         /// <summary>
+        /// The identifier for the ComponentType_Properties Object.
+        /// </summary>
+        public const uint ComponentType_Properties = 15006;
+
+        /// <summary>
         /// The identifier for the VisualComponents Object.
         /// </summary>
         public const uint VisualComponents = 15001;
@@ -94,6 +99,11 @@ namespace vc2opcua
         /// The identifier for the ComponentType_Signals Object.
         /// </summary>
         public static readonly ExpandedNodeId ComponentType_Signals = new ExpandedNodeId(vc2opcua.Objects.ComponentType_Signals, vc2opcua.Namespaces.vc2opcua);
+
+        /// <summary>
+        /// The identifier for the ComponentType_Properties Object.
+        /// </summary>
+        public static readonly ExpandedNodeId ComponentType_Properties = new ExpandedNodeId(vc2opcua.Objects.ComponentType_Properties, vc2opcua.Namespaces.vc2opcua);
 
         /// <summary>
         /// The identifier for the VisualComponents Object.
@@ -143,6 +153,11 @@ namespace vc2opcua
         /// The BrowseName for the ComponentType component.
         /// </summary>
         public const string ComponentType = "ComponentType";
+
+        /// <summary>
+        /// The BrowseName for the Properties component.
+        /// </summary>
+        public const string Properties = "Properties";
 
         /// <summary>
         /// The BrowseName for the Signals component.

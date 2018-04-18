@@ -20,6 +20,9 @@
       <opc:Object SymbolicName="Signals" TypeDefinition="ua:FolderType" SupportsEvents="true">
         <opc:BrowseName>Signals</opc:BrowseName>
       </opc:Object>
+      <opc:Object SymbolicName="Properties" TypeDefinition="ua:FolderType" SupportsEvents="true">
+        <opc:BrowseName>Properties</opc:BrowseName>
+      </opc:Object>
     </opc:Children>
   </opc:ObjectType>
   
