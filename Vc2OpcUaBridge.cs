@@ -27,6 +27,8 @@ namespace vc2opcua
         IServerInternal uaServer;
         public UaNodeManager nodeManager;
 
+        private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         #region Constructors
 
         public Vc2OpcUaBridge(IServerInternal server,
@@ -49,14 +51,23 @@ namespace vc2opcua
 
         // Correlates OPCUA BrowseNames to corresponding component names
         public Dictionary<string, string> UaBrowseName2VcComponentName { get; set; } = new Dictionary<string, string>();
-        // Correlates types between VisualComponents and OPCUA types
-        Dictionary<BehaviorType, NodeId> Vc2OpcuaTypeCorrelations { get; } = new Dictionary<BehaviorType, NodeId>
+        // Correlates types between VC Signal Types and OPCUA types
+        Dictionary<BehaviorType, NodeId> VcSignal2OpcuaType { get; } = new Dictionary<BehaviorType, NodeId>
         {
             { BehaviorType.StringSignal, new NodeId(DataTypeIds.String) },
             { BehaviorType.BooleanSignal, new NodeId(DataTypeIds.Boolean) },
             { BehaviorType.RealSignal, new NodeId(DataTypeIds.Double) },
             { BehaviorType.IntegerSignal, new NodeId(DataTypeIds.Integer) },
             { BehaviorType.ComponentSignal, new NodeId(DataTypeIds.String) }
+        };
+
+        // Correlates types between VC Property Types and OPCUA types
+        Dictionary<Type, NodeId> VcProperty2OpcuaType { get; } = new Dictionary<Type, NodeId>
+        {
+            { typeof(String), new NodeId(DataTypeIds.String) },
+            { typeof(Boolean), new NodeId(DataTypeIds.Boolean) },
+            { typeof(Double), new NodeId(DataTypeIds.Double) },
+            { typeof(Int32), new NodeId(DataTypeIds.Integer) }
         };
 
         #endregion
@@ -89,22 +100,52 @@ namespace vc2opcua
             VcComponent vcComponent = new VcComponent(simComponent);
 
             AddSignalNodes(componentNode, vcComponent);
+            AddPropertyNodes(componentNode, vcComponent);
 
             return componentNode;
         }
 
+        /// <summary>
+        /// Add signals from VC component to component OPCUA node
+        /// </summary>
         private void AddSignalNodes(ComponentState uaComponentNode, VcComponent vcComponent)
         {
             foreach (ISignal vcSignal in vcComponent.GetSignals())
             {
                 // Add signal node
-                BaseDataVariableState signalNode = CreateVariableNode(uaComponentNode.Signals, vcSignal.Name, Vc2OpcuaTypeCorrelations[vcSignal.Type]);
+                BaseDataVariableState signalNode = CreateVariableNode(uaComponentNode.Signals, vcSignal.Name, VcSignal2OpcuaType[vcSignal.Type]);
                 uaComponentNode.Signals.AddChild(signalNode);
 
                 // Store names in UaBrowseName2VcComponentName
                 UaBrowseName2VcComponentName.Add(signalNode.BrowseName.Name, vcComponent.component.Name);
 
                 SetSignals(signalNode, vcSignal);
+            }
+
+        }
+
+        /// <summary>
+        /// Add properties from VC component to component OPCUA node
+        /// </summary>
+        private void AddPropertyNodes(ComponentState uaComponentNode, VcComponent vcComponent)
+        {
+            foreach (IProperty vcProperty in vcComponent.component.Properties)
+            {
+                try
+                {
+                    // Add signal node
+                    BaseDataVariableState propertyNode = CreateVariableNode(uaComponentNode.Properties, vcProperty.Name, VcProperty2OpcuaType[vcProperty.PropertyType]);
+                    uaComponentNode.Properties.AddChild(propertyNode);
+                    
+                    // Store names in UaBrowseName2VcComponentName
+                    UaBrowseName2VcComponentName.Add(propertyNode.BrowseName.Name, vcComponent.component.Name);
+
+                    //SetSignals(signalNode, vcProperty);
+                }
+                catch (Exception ex)
+                {
+                    logger.Warn("Error adding property", ex);
+                }
             }
 
         }
@@ -289,7 +330,8 @@ namespace vc2opcua
         private void vc_SignalTriggered(object sender, SignalTriggerEventArgs e)
         {
             // Get OPCUA node that will get its value updated
-            NodeId nodeId = NodeId.Create(e.Signal.Name, Namespaces.vc2opcua, uaServer.NamespaceUris);
+            string nodeNameParent = String.Format("{0}-{1}", e.Signal.Name, e.Signal.Node.Name);
+            NodeId nodeId = NodeId.Create(nodeNameParent, Namespaces.vc2opcua, uaServer.NamespaceUris);
             BaseDataVariableState uaSignal = (BaseDataVariableState)nodeManager.FindPredefinedNode(nodeId, typeof(BaseDataVariableState));
 
             if (uaSignal == null)
