@@ -180,9 +180,6 @@ namespace vc2opcua
             componentNode.Signals.NodeId = signalsNodeId;
             componentNode.Properties.NodeId = propertiesNodeId;
 
-            componentNode.AddChild(componentNode.Signals);
-            componentNode.AddChild(componentNode.Properties);
-
             nodeManager.baseFolder.AddReference(ReferenceTypeIds.Organizes, false, componentNode.NodeId);
             componentNode.AddReference(ReferenceTypeIds.Organizes, true, nodeManager.baseFolder.NodeId);
 
