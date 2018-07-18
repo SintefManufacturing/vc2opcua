@@ -15,7 +15,7 @@ When installed, a VC2OPCUA Panel will be added to Visual Components main window:
 ![OPCUA Client Screenshot](/screenshots/opcua-client.png?raw=true "OPCUA Client Screenshot")
 
 
-## Requirements:
+## Requirements
  - [Visual Components](https://visualcomponents.com/)
  - [OPC UA .NET Stack](https://github.com/OPCFoundation/UA-.NETStandard) (only required if you want to compile this plugin yourself)
 
